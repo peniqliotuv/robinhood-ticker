@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "license": "MIT",
   "description": "Robinhood Ticker",
+  "repository": "https://github.com/peniqliotuv/robinhood-ticker",
   "main": "main.js",
   "scripts": {
     "start": "NODE_ENV=development electron .",
@@ -11,7 +12,6 @@
     "dist": "electron-builder",
     "publish": "build -p always"
   },
-  "repository": "https://github.com/electron/electron-quick-start",
   "keywords": [
     "Electron",
     "quick",
@@ -25,12 +25,6 @@
     "mac": {
       "category": "public.app-category.utilities",
       "icon": "build/icon-512.png"
-    },
-    "publish": {
-      "provider": "github",
-      "owner": "peniqliotuv",
-      "repo": "robinhood-ticker",
-      "host": "github.com"
     }
   },
   "devDependencies": {

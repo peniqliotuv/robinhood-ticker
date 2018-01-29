@@ -21,8 +21,6 @@ if (process.env.NODE_ENV === 'development') {
   });
 }
 
-autoUpdater.checkForUpdatesAndNotify();
-
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 
@@ -252,6 +250,7 @@ const showAboutDialog = () => {
 const isAuthenticated = () => store.get('data') ? true : false;
 
 const initializeApp = () => {
+  autoUpdater.checkForUpdatesAndNotify();
   app.dock.hide();
   // Necessary to prevent CORS since Electron sends things with an origin of file://
   session.defaultSession.webRequest.onBeforeSendHeaders((details, callback) => {
