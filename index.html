@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>RH Ticker</title>
+    <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css"
+  </head>
+  <body>
+
+    <div id="login-container">
+      <input type="text" placeholder="USERNAME" id="username" value=""/>
+      <input type="password" placeholder="PASSWORD" id="password" value=""/>
+    </div>
+    <div class="button-container">
+      <div class="button" onclick="login()">
+        LOGIN
+      </div>
+    </div>
+
+    <script>
+      const { remote, ipcRenderer } = require('electron');
+
+
+      document.addEventListener('keyup', (e) => {
+        if (e.keyCode === 13) {
+          document.getElementsByClassName('button')[0].click();
+        }
+      })
+
+      async function login() {
+        const userInput = document.getElementById('username');
+        const passwordInput = document.getElementById('password');
+        const username = userInput.value;
+        const password = passwordInput.value;
+
+        if (!username || !password) {
+          userInput.value = '';
+          passwordInput.value = '';
+          document.body.style.background = '#E35F3E';
+          document.getElementById('login-container').className = 'invalid';
+          document.getElementsByClassName('button-container')[0].className += ' invalid';
+          return;
+        } else {
+          document.body.style.background = '#61CA9D';
+          document.getElementById('login-container').className = '';
+          document.getElementsByClassName('button-container')[0].className = 'button-container';
+        }
+        // Will be null if doesn't exist.
+        let authCode;
+        if (document.getElementById('authCode')) {
+          authCode = document.getElementById('authCode').value;
+        }
+        try {
+          console.log(RobinHoodAPI.login);
+          const res = await RobinHoodAPI.login(username, password, authCode);
+          if (res.success && res.twoFactorAuthRequired) {
+            const input = document.createElement('input');
+            input.setAttribute('type', 'number');
+            input.setAttribute('id', 'authCode')
+            input.setAttribute('placeholder', '2FA Code');
+            document.getElementById('login-container').appendChild(input);
+          } else if (res.success && !res.twoFactorAuthRequired) {
+            RobinHoodAPI.token = res.token;
+            remote.getGlobal('addAuthHeaders')(RobinHoodAPI.token);
+            // 2FA succeeded
+            // Rertrieve all intial information
+
+            const accountNumber = await RobinHoodAPI.getAccountNumber();
+            RobinHoodAPI.accountNumber = accountNumber;
+
+            const positions = await RobinHoodAPI.getPositions();
+            RobinHoodAPI.positions = positions;
+
+            const portfolio = await RobinHoodAPI.getPortfolio();
+            RobinHoodAPI.portfolio = portfolio;
+
+            ipcRenderer.send('data', RobinHoodAPI);
+            window.close();
+          } else if (res.error) {
+            // Change this to something else...
+            alert(res.error);
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      }
+
+      // You can also require other files to run in this process
+      require('./renderer.js');
+      const RobinHoodAPI = require('./api.js');
+    </script>
+  </body>
+</html>
