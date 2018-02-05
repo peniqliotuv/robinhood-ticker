@@ -24,6 +24,7 @@ if (process.env.NODE_ENV === 'development') {
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 
+let preferences = null;
 let RobinHoodAPI = null;
 let tray = null;
 let win = null;
@@ -31,6 +32,7 @@ let win = null;
 let refresh;
 
 ipcMain.on('data', (event, arg) => {
+  console.log('data received from IPC');
   RobinHoodAPI = arg;
   store.set('data', RobinHoodAPI);
   const contextMenu = createTickerMenu();
@@ -45,11 +47,11 @@ const startRefresh = () => {
   return setInterval(async () => {
     try {
       await refreshAccountData(RobinHoodAPI._accountNumber);
-      console.log('Refresh success!')
-      const contextMenu = createTickerMenu();
-      tray.setContextMenu(contextMenu);
-      const equity = Number(RobinHoodAPI._portfolio.equity).toFixed(2);
-      tray.setTitle(`$${equity}`);
+      // console.log('Refresh success!')
+      // const contextMenu = createTickerMenu();
+      // tray.setContextMenu(contextMenu);
+      // const equity = Number(RobinHoodAPI._portfolio.equity).toFixed(2);
+      // tray.setTitle(`$${equity}`);
     } catch (e) {
       console.log('Could not refresh');
       console.log(e);
@@ -66,6 +68,10 @@ const changeRefreshRate = (rate) => {
 };
 
 
+/*
+  This method refreshes the account data and then repaints the contextmenu appropriately.
+  May be called upon interval refresh or manual refresh.
+*/
 const refreshAccountData = async (accountNumber) => {
   const fetchWithAuth = (url) => {
     return fetch(url, {
@@ -107,6 +113,11 @@ const refreshAccountData = async (accountNumber) => {
       console.log(json);
       throw new Error('Could not retrieve portfolio');
     }
+
+    const contextMenu = createTickerMenu();
+    tray.setContextMenu(contextMenu);
+    const equity = Number(RobinHoodAPI._portfolio.equity).toFixed(2);
+    tray.setTitle(`$${equity}`);
   } catch (e) {
     throw e;
   }
@@ -182,6 +193,24 @@ const createTickerMenu = () => {
       type: 'separator',
     },
     {
+      label: 'Manual Refresh',
+      click: async (menuItem, browserWindow) => {
+        try {
+          await refreshAccountData(RobinHoodAPI._accountNumber);
+        } catch (e) {
+          console.error(e);
+          dialog.showMessageBox({
+            type: 'error',
+            message: 'Unable to refresh account data.',
+          });
+        }
+      },
+    },
+    // {
+    //   label: 'Preferences',
+    //   click: () => createPreferencesWindow(),
+    // },
+    {
       label: 'Refresh Every...',
       submenu: [
         {
@@ -244,6 +273,28 @@ const showAboutDialog = () => {
     title: 'About',
     message: 'RobinHood Ticker \n\nYour information is NEVER stored or collected. \n\nFind me on www.github.com/peniqliotuv',
     icon: `${__dirname}/logo-large.png`,
+  });
+}
+
+const createPreferencesWindow = () => {
+  preferences = new BrowserWindow({
+    height: 400,
+    width: 300,
+    resizable: false,
+  });
+
+  if (process.env.NODE_ENV === 'development') {
+    preferences.webContents.openDevTools({ mode: 'detach' });
+  }
+
+  preferences.loadURL(url.format({
+    pathname: path.join(__dirname, 'preferences.html'),
+    protocol: 'file:',
+    slashes: true,
+  }));
+
+  preferences.on('close', () => {
+    preferences = null;
   });
 }
 
@@ -313,7 +364,12 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit();
   }
-})
+});
+
+// Makes sure that we persist a user's data before exiting
+app.on('before-quit', () => {
+  store.set('data', RobinHoodAPI);
+});
 
 app.on('activate', () => {
   // On OS X it's common to re-create a window in the app when the

@@ -74,3 +74,9 @@ body {
     cursor:  pointer;
 }
 
+/* Below is the for the settings page */
+.refresh-container {
+    text-align: center;
+    width: 100%;
+}
+
