@@ -14,6 +14,9 @@ const { autoUpdater } = require('electron-updater');
 const Store = require('electron-store');
 const store = new Store();
 
+const ICON_LOGO_LARGE = `${__dirname}/logo-large.png`;
+const ICON_LOGO = `${__dirname}/logo.png`;
+
 if (process.env.NODE_ENV === 'development') {
   console.info('Electron is reloading');
   require('electron-reload')(__dirname, {
@@ -41,17 +44,22 @@ ipcMain.on('data', (event, arg) => {
   refresh = startRefresh();
 });
 
+ipcMain.on('preferences-saved', (event, arg) => {
+  console.log('Preferences Saved!');
+  console.log(arg);
+  store.set('preferences', arg);
+  const contextMenu = createTickerMenu();
+  tray.setContextMenu(contextMenu);
+  tray.popUpContextMenu(contextMenu);
+  refresh = startRefresh();
+});
+
 const startRefresh = () => {
-  const refreshRate = store.get('refreshRate') * 60 * 1000;
+  const refreshRate = store.get('preferences').refreshRate * 60 * 1000;
   console.log(`Refreshing at rate: ${refreshRate}`);
   return setInterval(async () => {
     try {
       await refreshAccountData(RobinHoodAPI._accountNumber);
-      // console.log('Refresh success!')
-      // const contextMenu = createTickerMenu();
-      // tray.setContextMenu(contextMenu);
-      // const equity = Number(RobinHoodAPI._portfolio.equity).toFixed(2);
-      // tray.setTitle(`$${equity}`);
     } catch (e) {
       console.log('Could not refresh');
       console.log(e);
@@ -62,7 +70,9 @@ const startRefresh = () => {
 
 const changeRefreshRate = (rate) => {
   console.log(`Changing refresh rate to: ${rate}`);
-  store.set('refreshRate', rate);
+  const preferences = store.get('preferences');
+  const newPreferences = Object.assign({}, preferences, { refreshRate: rate });
+  store.set('preferences', newPreferences);
   clearInterval(refresh);
   refresh = startRefresh();
 };
@@ -123,7 +133,8 @@ const refreshAccountData = async (accountNumber) => {
   }
 }
 
-const createBrowserWindow = () => {
+// The login window
+const createLoginWindow = () => {
   return new BrowserWindow({
     width: 300,
     height: 450,
@@ -135,13 +146,14 @@ const createBrowserWindow = () => {
   });
 };
 
+// To be displayed if the user has not authenticated yet
 const createLoginMenu = () => {
   const template = [
     {
       label: 'Login',
       click: () => {
         if (win === null) {
-          win = createBrowserWindow();
+          win = createLoginWindow();
         }
         win.loadURL(url.format({
           pathname: path.join(__dirname, 'index.html'),
@@ -168,21 +180,40 @@ const createLoginMenu = () => {
 };
 
 const createTickerMenu = () => {
+  // Retrieve preferences + user data
   const { _portfolio: portfolio, _positions: positions } = RobinHoodAPI;
+  const { viewBy } = store.get('preferences');
+
+  // Create menuItems about our individual positions
   const template = positions.map((data) => {
     const price = (data.quantity * Number(data.quote.last_trade_price));
-    const difference = (price - data.quantity * data.quote.previous_close);
+    const oldPrice = data.quantity * data.quote.previous_close;
+    let difference = (price - oldPrice);
     const sign = difference >= 0 ? '+' : '-';
+    if (viewBy === 'percent') {
+      difference = `${Math.abs(100 * difference/Number(oldPrice)).toFixed(4)}%`
+    } else {
+      difference = Math.abs(difference.toFixed(2));
+    }
     return {
-      label: `${data.symbol} | $${price.toFixed(2)} | ${sign}${Math.abs(difference).toFixed(2)}`,
+      label: `${data.symbol} | $${price.toFixed(2)} | ${sign}${difference}`,
       click: () => {},
     };
   });
-  const dailyEquityDifference = Number(portfolio.equity) - Number(portfolio.equity_previous_close);
+
+
+  let dailyEquityDifference = Number(portfolio.equity) - Number(portfolio.equity_previous_close);
+  console.log(dailyEquityDifference);
   const sign = dailyEquityDifference >= 0 ? '+' : '-';
+  if (viewBy === 'percent') {
+    dailyEquityDifference = `${Math.abs(dailyEquityDifference/Number(portfolio.equity_previous_close)).toFixed(4)}%`;
+  } else {
+    dailyEquityDifference = Math.abs(dailyEquityDifference.toFixed(2));
+  }
+
   template.unshift(
     {
-      label: `Today: ${sign}${Math.abs(dailyEquityDifference.toFixed(2))}`
+      label: `Today: ${sign}${dailyEquityDifference}`
     },
     {
       type: 'separator',
@@ -206,44 +237,9 @@ const createTickerMenu = () => {
         }
       },
     },
-    // {
-    //   label: 'Preferences',
-    //   click: () => createPreferencesWindow(),
-    // },
     {
-      label: 'Refresh Every...',
-      submenu: [
-        {
-          label: '1 minute',
-          type: 'radio',
-          checked: store.get('refreshRate') === 1,
-          click: () => changeRefreshRate(1),
-        },
-        {
-          label: '2 minutes',
-          type: 'radio',
-          checked: store.get('refreshRate') === 2,
-          click: () => changeRefreshRate(2),
-        },
-        {
-          label: '5 minutes',
-          type: 'radio',
-          checked: store.get('refreshRate') === 5,
-          click: () => changeRefreshRate(5),
-        },
-        {
-          label: '15 minutes',
-          type: 'radio',
-          checked: store.get('refreshRate') === 15,
-          click: () => changeRefreshRate(15),
-        },
-        {
-          label: '30 minutes',
-          type: 'radio',
-          checked: store.get('refreshRate') === 30,
-          click: () => changeRefreshRate(30),
-        },
-      ],
+      label: 'Preferences',
+      click: () => createPreferencesWindow(),
     },
     {
       label: 'Logout',
@@ -268,11 +264,12 @@ const createTickerMenu = () => {
 }
 
 const showAboutDialog = () => {
+  const APP_VERSION = app.getVersion();
   dialog.showMessageBox({
     type: 'info',
     title: 'About',
-    message: 'RobinHood Ticker \n\nYour information is NEVER stored or collected. \n\nFind me on www.github.com/peniqliotuv',
-    icon: `${__dirname}/logo-large.png`,
+    message: `RobinHood Ticker ${APP_VERSION}\n\nYour information is NEVER stored or collected. \n\nFind me on www.github.com/peniqliotuv`,
+    icon: ICON_LOGO_LARGE,
   });
 }
 
@@ -293,6 +290,12 @@ const createPreferencesWindow = () => {
     slashes: true,
   }));
 
+
+  preferences.webContents.on('did-finish-load', () => {
+    preferences.webContents.send('preferences', store.get('preferences'));
+  });
+
+
   preferences.on('close', () => {
     preferences = null;
   });
@@ -301,7 +304,6 @@ const createPreferencesWindow = () => {
 const isAuthenticated = () => store.get('data') ? true : false;
 
 const initializeApp = () => {
-  autoUpdater.checkForUpdatesAndNotify();
   app.dock.hide();
   // Necessary to prevent CORS since Electron sends things with an origin of file://
   session.defaultSession.webRequest.onBeforeSendHeaders((details, callback) => {
@@ -309,13 +311,16 @@ const initializeApp = () => {
     details.requestHeaders['content-type'] = 'application/json';
     callback({ cancel: false, requestHeaders: details.requestHeaders });
   });
-
-  if (!store.get('refreshRate')) {
-    store.set('refreshRate', 1);
+  // Default preferences
+  if (!store.get('preferences')) {
+    store.set('preferences', {
+      refreshRate: 1,
+      viewBy: 'gain/loss',
+    });
   }
 
   // Create the browser window.
-  win = createBrowserWindow();
+  win = createLoginWindow();
   win.loadURL(url.format({
     pathname: path.join(__dirname, 'index.html'),
     protocol: 'file:',
@@ -330,7 +335,7 @@ const initializeApp = () => {
     win.openDevTools();
   }
 
-  tray = new Tray(`${__dirname}/logo.png`);
+  tray = new Tray(ICON_LOGO);
 
   let contextMenu;
   if (isAuthenticated()) {
@@ -377,6 +382,25 @@ app.on('activate', () => {
   if (win === null) {
     initializeApp();
   }
+});
+
+autoUpdater.on ('update-available', () => {
+  dialog.showMessageBox({
+    type: 'info',
+    title: 'Update Available!',
+    buttons: ['Download'],
+    icon: ICON_LOGO_LARGE,
+  }, (response, checkboxChecked) => {
+    console.log(response);
+  });
+});
+
+autoUpdater.on('update-downloaded', () => {
+  dialog.showMessageBox({
+    type: 'info',
+    title: 'Update Successfully downloaded!',
+    icon: ICON_LOGO_LARGE,
+  });
 });
 
 // Necessary to authenticating requests
