@@ -50,7 +50,6 @@ ipcMain.on('preferences-saved', (event, arg) => {
   store.set('preferences', arg);
   const contextMenu = createTickerMenu();
   tray.setContextMenu(contextMenu);
-  tray.popUpContextMenu(contextMenu);
   refresh = startRefresh();
 });
 
@@ -280,9 +279,9 @@ const createPreferencesWindow = () => {
     resizable: false,
   });
 
-  if (process.env.NODE_ENV === 'development') {
-    preferences.webContents.openDevTools({ mode: 'detach' });
-  }
+  // if (process.env.NODE_ENV === 'development') {
+  //   preferences.webContents.openDevTools({ mode: 'detach' });
+  // }
 
   preferences.loadURL(url.format({
     pathname: path.join(__dirname, 'preferences.html'),

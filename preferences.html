@@ -65,6 +65,7 @@
         const refreshRate = document.getElementById('select-refresh').value;
         const viewBy = document.getElementById('select-view-by').value;
         ipcRenderer.send('preferences-saved', { refreshRate, viewBy });
+        window.close();
       }
 
       // You can also require other files to run in this process
