@@ -1,5 +1,9 @@
 # Robinhood Ticker
 
+
+[![NPM version](https://badge.fury.io/js/badge-list.svg)](http://badge.fury.io/js/badge-list)
+[![Open Source Love](https://badges.frapsoft.com/os/mit/mit.svg?v=102)](https://github.com/ellerbrock/open-source-badge/)
+
 Track the performance of your stocks with the RobinHood API.
 (Reference the unofficial Robinhood API: https://github.com/sanko/Robinhood)
 
