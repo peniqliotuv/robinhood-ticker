@@ -187,21 +187,31 @@ const createLoginMenu = () => {
 const createTickerMenu = () => {
   // Retrieve preferences + user data
   const { _portfolio: portfolio, _positions: positions } = RobinHoodAPI;
-  const { viewBy } = store.get('preferences');
+  const { viewChangeBy, viewEquityBy } = store.get('preferences');
 
   // Create menuItems about our individual positions
   const template = positions.map((data) => {
-    const price = (data.quantity * Number(data.quote.last_trade_price));
-    const oldPrice = data.quantity * data.quote.previous_close;
+    // console.log(data);
+    let symbol = data.symbol;
+    let price = Number(data.quote.last_extended_hours_trade_price) || Number(data.quote.last_trade_price);
+    let oldPrice = data.quote.previous_close;
+    if (viewEquityBy === 'total-equity') {
+      price *= data.quantity;
+      oldPrice *= data.quantity;
+    } else {
+      symbol += ` (${data.quantity})`
+    }
+
     let difference = (price - oldPrice);
     const sign = difference >= 0 ? '+' : '-';
-    if (viewBy === 'percent') {
+    if (viewChangeBy === 'percent') {
       difference = `${Math.abs(100 * difference/Number(oldPrice)).toFixed(4)}%`
     } else {
       difference = Math.abs(difference.toFixed(2));
     }
+
     return {
-      label: `${data.symbol} | $${price.toFixed(2)} | ${sign}${difference}`,
+      label: `${symbol} | $${price.toFixed(2)} | ${sign}${difference}`,
       click: () => {},
     };
   });
@@ -210,7 +220,7 @@ const createTickerMenu = () => {
   let dailyEquityDifference = Number(portfolio.equity) - Number(portfolio.equity_previous_close);
   console.log(dailyEquityDifference);
   const sign = dailyEquityDifference >= 0 ? '+' : '-';
-  if (viewBy === 'percent') {
+  if (viewChangeBy === 'percent') {
     dailyEquityDifference = `${Math.abs(100 * dailyEquityDifference/Number(portfolio.equity_previous_close)).toFixed(4)}%`;
   } else {
     dailyEquityDifference = Math.abs(dailyEquityDifference.toFixed(2));
@@ -321,7 +331,8 @@ const initializeApp = () => {
   if (!store.get('preferences')) {
     store.set('preferences', {
       refreshRate: 1,
-      viewBy: 'gain/loss',
+      viewChangeBy: 'gain/loss',
+      viewEquityBy: 'total-equity',
     });
   }
 

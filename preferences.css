@@ -7,6 +7,7 @@
 body {
     display: flex;
     height: 100vh;
+    overflow-y: hidden;
     font-family: 'Alte Din', sans-serif;
     font-weight: 100;
     user-select: none;
@@ -65,6 +66,7 @@ input {
     display: flex;
     justify-content: center;
     width: 100%;
+    margin-top: 65px;
     align-items: center;
     flex-direction: column
 }
@@ -96,6 +98,11 @@ input {
 .mui-select:focus > select {
     border-color: #529B80;
 }
+
+.mui-select:focus>label, .mui-select>select:focus~label {
+    color: #529B80;
+}
+
 #backdrop {
     position: absolute;
     height: 415px;
