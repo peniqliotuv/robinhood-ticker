@@ -14,8 +14,8 @@ const { autoUpdater } = require('electron-updater');
 const Store = require('electron-store');
 const store = new Store();
 
-const ICON_LOGO_LARGE = `${__dirname}/logo-large.png`;
-const ICON_LOGO = `${__dirname}/logo.png`;
+const ICON_LOGO_LARGE = `${__dirname}/assets/logo-large.png`;
+const ICON_LOGO = `${__dirname}/assets/logo.png`;
 
 if (process.env.NODE_ENV === 'development') {
   console.info('Electron is reloading');
@@ -76,18 +76,18 @@ const changeRefreshRate = (rate) => {
   refresh = startRefresh();
 };
 
+const fetchWithAuth = (url, opts) => {
+  const options = Object.assign({}, opts, { headers: { Authorization: `Token ${RobinHoodAPI._token}` } });
+  console.log(options)
+  return fetch(url, options);
+};
 
 /*
   This method refreshes the account data and then repaints the contextmenu appropriately.
   May be called upon interval refresh or manual refresh.
 */
 const refreshAccountData = async (accountNumber) => {
-  const fetchWithAuth = (url) => {
-    return fetch(url, {
-      headers: { Authorization: `Token ${RobinHoodAPI._token}` },
-    });
-  };
-
+  /* Fetch information about a user's positions*/
   try {
     let res = await fetchWithAuth(`https://api.robinhood.com/accounts/${accountNumber}/positions/`);
     let json = await res.json();
@@ -108,16 +108,17 @@ const refreshAccountData = async (accountNumber) => {
             instrument: instrument,
           }
         }));
+      // console.log(RobinHoodAPI._positions);
       RobinHoodAPI._positions = transformed;
     } else {
-      console.log(json);
       throw new Error('Could not retrieve positions');
     }
-
+    /* Fetch information about a user's portfolio*/
     res = await fetchWithAuth(`https://api.robinhood.com/accounts/${accountNumber}/portfolio/`);
     json = await res.json();
     if (res.ok) {
       RobinHoodAPI._portfolio = json;
+      console.log(json);
     } else {
       console.log(json);
       throw new Error('Could not retrieve portfolio');
@@ -125,7 +126,7 @@ const refreshAccountData = async (accountNumber) => {
 
     const contextMenu = createTickerMenu();
     tray.setContextMenu(contextMenu);
-    const equity = Number(RobinHoodAPI._portfolio.equity).toFixed(2);
+    const equity = Number(RobinHoodAPI._portfolio.extended_hours_equity || RobinHoodAPI._portfolio.equity).toFixed(2);
     tray.setTitle(`$${equity}`);
   } catch (e) {
     throw e;
@@ -154,11 +155,13 @@ const createLoginMenu = () => {
         if (win === null) {
           win = createLoginWindow();
         }
+
         win.loadURL(url.format({
           pathname: path.join(__dirname, 'index.html'),
           protocol: 'file:',
           slashes: true,
         }));
+        win.webContents.openDevTools({ mode: 'detach' });
         win.on('close', () => {
           win = null;
         });
@@ -205,7 +208,7 @@ const createTickerMenu = () => {
   console.log(dailyEquityDifference);
   const sign = dailyEquityDifference >= 0 ? '+' : '-';
   if (viewBy === 'percent') {
-    dailyEquityDifference = `${Math.abs(dailyEquityDifference/Number(portfolio.equity_previous_close)).toFixed(4)}%`;
+    dailyEquityDifference = `${Math.abs(100 * dailyEquityDifference/Number(portfolio.equity_previous_close)).toFixed(4)}%`;
   } else {
     dailyEquityDifference = Math.abs(dailyEquityDifference.toFixed(2));
   }
@@ -242,8 +245,9 @@ const createTickerMenu = () => {
     },
     {
       label: 'Logout',
-      click: () => {
-        store.delete('data');
+      click: async () => {
+        const res = await fetchWithAuth('https://api.robinhood.com/api-token-logout/', { method: 'POST', Accept: 'application/json' });
+        RobinHoodAPI = null;
         const contextMenu = createLoginMenu();
         tray.setTitle('');
         tray.setContextMenu(contextMenu);
@@ -279,10 +283,6 @@ const createPreferencesWindow = () => {
     resizable: false,
   });
 
-  // if (process.env.NODE_ENV === 'development') {
-  //   preferences.webContents.openDevTools({ mode: 'detach' });
-  // }
-
   preferences.loadURL(url.format({
     pathname: path.join(__dirname, 'preferences.html'),
     protocol: 'file:',
@@ -310,6 +310,7 @@ const initializeApp = () => {
     details.requestHeaders['content-type'] = 'application/json';
     callback({ cancel: false, requestHeaders: details.requestHeaders });
   });
+
   // Default preferences
   if (!store.get('preferences')) {
     store.set('preferences', {
@@ -330,9 +331,9 @@ const initializeApp = () => {
     win = null;
   });
 
-  if (process.env.NODE_ENV === 'development') {
-    win.openDevTools();
-  }
+  // if (process.env.NODE_ENV === 'development') {
+    win.openDevTools({ mode: 'detach' });
+  // }
 
   tray = new Tray(ICON_LOGO);
 
@@ -340,7 +341,7 @@ const initializeApp = () => {
   if (isAuthenticated()) {
     RobinHoodAPI = store.get('data');
     contextMenu = createTickerMenu();
-    const equity = Number(RobinHoodAPI._portfolio.equity).toFixed(2);
+    const equity = Number(RobinHoodAPI._portfolio.extended_hours_equity || RobinHoodAPI._portfolio.equity).toFixed(2);
     tray.setTitle(`$${equity}`);
     global.addAuthHeaders(RobinHoodAPI._token);
     refresh = startRefresh();
@@ -404,11 +405,14 @@ autoUpdater.on('update-downloaded', () => {
 
 // Necessary to authenticating requests
 global.addAuthHeaders = (token) => {
-  console.log('adding auth headers' + token);
-  session.defaultSession.webRequest.onBeforeSendHeaders((details, callback) => {
+  const filter = {
+    urls: ['https://api.robinhood.com/api-token-auth/'],
+  };
+
+  session.defaultSession.webRequest.onBeforeSendHeaders(filter, (details, callback) => {
     details.requestHeaders['Origin'] = 'electron://robinhood-app';
     details.requestHeaders['content-type'] = 'application/json';
     details.requestHeaders['Authorization'] = `Token ${token}`
     callback({ cancel: false, requestHeaders: details.requestHeaders });
   });
-}
+};

@@ -134,6 +134,7 @@ class RobinHoodAPI {
         body: JSON.stringify({ username, password, mfa_code }),
       });
       const json = await res.json();
+      console.log(json);
       if (res.ok) {
         return {
           success: true,
@@ -142,7 +143,13 @@ class RobinHoodAPI {
         };
       } else {
         // Get the error message from RobinHood and re-throw it
-        throw new Error(json.non_field_errors[0]);
+        let message = '';
+        if (json.non_field_errors) {
+          message = json.non_field_errors[0];
+        } else if (json.mfa_code) {
+          message = json.mfa_code[0];
+        }
+        throw new Error(message);
       }
     } catch (error) {
       return {

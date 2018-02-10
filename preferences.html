@@ -38,7 +38,11 @@
     <script>
       const { remote, ipcRenderer } = require('electron');
 
-
+      document.onkeydown = (event) => {
+        if (event.keyCode === 27) {
+          window.close();
+        }
+      }
 
       ipcRenderer.on('preferences', (event, message) => {
         const { refreshRate, viewBy } = message;
