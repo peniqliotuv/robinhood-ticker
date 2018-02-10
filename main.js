@@ -39,8 +39,9 @@ ipcMain.on('data', (event, arg) => {
   RobinHoodAPI = arg;
   store.set('data', RobinHoodAPI);
   const contextMenu = createTickerMenu();
+  const equity = Number(RobinHoodAPI._portfolio.extended_hours_equity || RobinHoodAPI._portfolio.equity).toFixed(2);
+  tray.setTitle(`$${equity}`);
   tray.setContextMenu(contextMenu);
-  tray.popUpContextMenu(contextMenu);
   refresh = startRefresh();
 });
 
@@ -133,7 +134,7 @@ const refreshAccountData = async (accountNumber) => {
   }
 }
 
-// The login window
+// The login window.
 const createLoginWindow = () => {
   return new BrowserWindow({
     width: 300,
@@ -406,9 +407,8 @@ autoUpdater.on('update-downloaded', () => {
 // Necessary to authenticating requests
 global.addAuthHeaders = (token) => {
   const filter = {
-    urls: ['https://api.robinhood.com/api-token-auth/'],
+    urls: ['https://api.robinhood.com/accounts/*', 'https://api.robinhood.com/api-token-logout/'],
   };
-
   session.defaultSession.webRequest.onBeforeSendHeaders(filter, (details, callback) => {
     details.requestHeaders['Origin'] = 'electron://robinhood-app';
     details.requestHeaders['content-type'] = 'application/json';
@@ -416,3 +416,11 @@ global.addAuthHeaders = (token) => {
     callback({ cancel: false, requestHeaders: details.requestHeaders });
   });
 };
+
+global.addContentTypeHeaders = () => {
+  session.defaultSession.webRequest.onBeforeSendHeaders((details, callback) => {
+    details.requestHeaders['Origin'] = 'electron://robinhood-app';
+    details.requestHeaders['content-type'] = 'application/json';
+    callback({ cancel: false, requestHeaders: details.requestHeaders });
+  });
+}

@@ -7,10 +7,12 @@
     <link rel="stylesheet" href="styles.css"
   </head>
   <body>
-
+    <div id="backdrop">
+    </div>
     <div id="login-container">
       <input type="text" placeholder="USERNAME" id="username" value=""/>
       <input type="password" placeholder="PASSWORD" id="password" value=""/>
+
     </div>
     <div class="button-container">
       <div class="button" onclick="login()">
@@ -30,6 +32,7 @@
         }
       })
 
+      /* To be displayed upon an invalid input or error response from RH servers */
       function displayErrorTheme() {
         document.body.style.background = '#E35F3E';
         document.getElementById('login-container').className = 'invalid';
@@ -60,15 +63,32 @@
           authCode = document.getElementById('authCode').value;
         }
         try {
-          // console.log(RobinHoodAPI.login);
+          /* Hide login fields and display spinner */
+          const loginContainer = document.getElementById('login-container');
+          userInput.style.visibility = 'hidden';
+          passwordInput.style.visibility = 'hidden';
+          if (document.getElementById('authCode')) {
+            document.getElementById('authCode').style.visibility = 'hidden';
+          }
+          const loader = document.createElement('div');
+          loader.style.color = '#61CA9D';
+          loader.className = 'la-cube-transition la-2x';
+          loader.appendChild(document.createElement('div'));
+          loader.appendChild(document.createElement('div'));
+          loginContainer.appendChild(loader);
+          /* RobinhoodAPI.login() makes a post request, so need to change content-type to application/json*/
+          remote.getGlobal('addContentTypeHeaders')();
           const res = await RobinHoodAPI.login(username, password, authCode);
-          console.log(res);
           if (res.success && res.twoFactorAuthRequired) {
+            loginContainer.removeChild(loader);
+            userInput.style.visibility = 'visible';
+            passwordInput.style.visibility = 'visible';
             const input = document.createElement('input');
             input.setAttribute('type', 'number');
             input.setAttribute('id', 'authCode')
             input.setAttribute('placeholder', '2FA Code');
-            document.getElementById('login-container').appendChild(input);
+            loginContainer.appendChild(input);
+            loginContainer.style.paddingBottom = "99px";
           } else if (res.success && !res.twoFactorAuthRequired) {
             RobinHoodAPI.token = res.token;
             remote.getGlobal('addAuthHeaders')(RobinHoodAPI.token);
@@ -87,6 +107,12 @@
             ipcRenderer.send('data', RobinHoodAPI);
             window.close();
           } else if (res.error) {
+            loginContainer.removeChild(loader);
+            userInput.style.visibility = 'visible';
+            passwordInput.style.visibility = 'visible';
+            if (document.getElementById('authCode')) {
+              document.getElementById('authCode').style.visibility = 'visible';
+            }
             displayErrorTheme();
             // Change this to something else...
             alert(res.error);

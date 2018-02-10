@@ -1,3 +1,9 @@
+@font-face {
+    font-family: 'Alte Din';
+    src: url('./assets/din1451alt.ttf');
+}
+
+
 body {
     margin: 20px;
     min-height: 100vh;
@@ -6,7 +12,7 @@ body {
     display: flex;
     align-items: center;
     flex-direction: column;
-    font-family: 'Lato-light', sans-serif;
+    font-family: 'Alte Din', sans-serif;
     font-weight: 100;
     user-select: none;
     background-color:  #E6E4E7;
