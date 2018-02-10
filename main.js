@@ -11,11 +11,12 @@ const fetch = require('node-fetch');
 const path = require('path');
 const url = require('url');
 const { autoUpdater } = require('electron-updater');
+const openAboutWindow = require('about-window').default;
 const Store = require('electron-store');
 const store = new Store();
 
-const ICON_LOGO_LARGE = `${__dirname}/assets/logo-large.png`;
-const ICON_LOGO = `${__dirname}/assets/logo.png`;
+const ICON_LOGO_LARGE = `${__dirname}/assets/logo-512.png`;
+const ICON_LOGO = `${__dirname}/assets/logo-16.png`;
 
 if (process.env.NODE_ENV === 'development') {
   console.info('Electron is reloading');
@@ -34,6 +35,7 @@ let win = null;
 // Set this to the value of setTimeout()
 let refresh;
 
+/* When we receieve the initial load from the login */
 ipcMain.on('data', (event, arg) => {
   console.log('data received from IPC');
   RobinHoodAPI = arg;
@@ -162,7 +164,7 @@ const createLoginMenu = () => {
           protocol: 'file:',
           slashes: true,
         }));
-        win.webContents.openDevTools({ mode: 'detach' });
+        // win.webContents.openDevTools({ mode: 'detach' });
         win.on('close', () => {
           win = null;
         });
@@ -252,12 +254,17 @@ const createTickerMenu = () => {
         const contextMenu = createLoginMenu();
         tray.setTitle('');
         tray.setContextMenu(contextMenu);
-        tray.popUpContextMenu(contextMenu);
       },
     },
     {
       label: 'About',
-      click: () => showAboutDialog(),
+      click: () => openAboutWindow({
+        icon_path: ICON_LOGO_LARGE,
+        copyright: 'Copyright (c) 2018 Jerry Tsui',
+        package_json_dir: __dirname,
+        description: 'www.github.com/peniqliotuv',
+        open_devtools: process.env.NODE_ENV !== 'production',
+      }),
     },
     {
       label: 'Quit',
@@ -267,21 +274,18 @@ const createTickerMenu = () => {
   return Menu.buildFromTemplate(template);
 }
 
-const showAboutDialog = () => {
-  const APP_VERSION = app.getVersion();
-  dialog.showMessageBox({
-    type: 'info',
-    title: 'About',
-    message: `RobinHood Ticker ${APP_VERSION}\n\nYour information is NEVER stored or collected. \n\nFind me on www.github.com/peniqliotuv`,
-    icon: ICON_LOGO_LARGE,
-  });
-}
-
 const createPreferencesWindow = () => {
+  /* Prevent creation of unncessary number of windows*/
+  if (preferences !== null) {
+    preferences.show();
+    return;
+  }
+
   preferences = new BrowserWindow({
     height: 400,
     width: 300,
     resizable: false,
+    backgroundColor: '#212025',
   });
 
   preferences.loadURL(url.format({
@@ -290,6 +294,7 @@ const createPreferencesWindow = () => {
     slashes: true,
   }));
 
+  preferences.webContents.openDevTools({ mode: 'undocked' })
 
   preferences.webContents.on('did-finish-load', () => {
     preferences.webContents.send('preferences', store.get('preferences'));
@@ -333,7 +338,7 @@ const initializeApp = () => {
   });
 
   // if (process.env.NODE_ENV === 'development') {
-    win.openDevTools({ mode: 'detach' });
+    // win.openDevTools({ mode: 'detach' });
   // }
 
   tray = new Tray(ICON_LOGO);
