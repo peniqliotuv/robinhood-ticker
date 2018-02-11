@@ -21,7 +21,7 @@ class StockAPI {
       apikey: this.API_KEY,
       function: 'SMA',
       symbol,
-      interval: '5min',
+      interval: '15min',
       series_type: 'close',
       time_period: 10,
     };
@@ -31,9 +31,12 @@ class StockAPI {
       const res = await fetch(`${this.HOST}/query?${qs}`);
       const json = await res.json();
       const data = json['Technical Analysis: SMA'];
+      console.log(data)
+      /* Transform into [{x: ... y: ...}, {}]*/
       return data;
     } catch (e) {
       console.error(e);
+      console.error(e.stack)
       throw e;
     }
 

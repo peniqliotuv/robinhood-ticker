@@ -163,7 +163,7 @@ const createLoginMenu = () => {
         }
 
         win.loadURL(url.format({
-          pathname: path.join(__dirname, 'index.html'),
+          pathname: path.join(__dirname, 'views/index.html'),
           protocol: 'file:',
           slashes: true,
         }));
@@ -301,7 +301,7 @@ const createPreferencesWindow = () => {
   });
 
   preferences.loadURL(url.format({
-    pathname: path.join(__dirname, 'preferences.html'),
+    pathname: path.join(__dirname, 'views/preferences.html'),
     protocol: 'file:',
     slashes: true,
   }));
@@ -318,8 +318,37 @@ const createPreferencesWindow = () => {
 
 
 const createStockInfoWindow = async (symbol) => {
-  const data = await stockAPI.getSMA(symbol);
-  console.log(data);
+  if (stockInfoWindow !== null) {
+    stockInfoWindow.show();
+    return;
+  }
+  stockInfoWindow = new BrowserWindow({
+    height: 750,
+    width: 1100,
+    resizable: false,
+    title: `${symbol}`,
+    backgroundColor: '#212025',
+  });
+  stockInfoWindow.loadURL(url.format({
+    pathname: path.join(__dirname, 'views/chart.html'),
+    protocol: 'file:',
+    slashes: true,
+  }));
+
+  stockInfoWindow.webContents.openDevTools({ mode: 'undocked' })
+
+  stockInfoWindow.webContents.on('did-finish-load', () => {
+    stockAPI.getSMA(symbol)
+      .then(data => {
+        const transformedData = Object.entries(data).map(entry => ({ x: new Date(entry[0]).toLocaleString(), y: entry[1].SMA }));
+        stockInfoWindow.webContents.send('data', { data: transformedData, symbol });
+      })
+      .catch(err => console.err(err));
+  });
+
+  stockInfoWindow.on('close', () => {
+    stockInfoWindow = null;
+  });
 };
 
 const isAuthenticated = () => store.get('data') ? true : false;

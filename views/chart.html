@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="../styles/chart.css" />
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.1/Chart.bundle.min.js" /> -->
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-zoom/0.6.3/chartjs-plugin-zoom.min.js" /> -->
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js" /> -->
+  </head>
+  <body>
+    <div>
+      <canvas id="stock-chart" width="1025" height="650"></canvas>
+    </div>
+    <script>
+      const { remote, ipcRenderer } = require('electron');
+      const Chart = require('chart.js');
+
+      const Hammer = require('hammerjs');
+      const zoom = require('chartjs-plugin-zoom');
+      console.log(Hammer)
+      console.log(zoom)
+
+      const ctx = document.getElementById('stock-chart');
+
+      ipcRenderer.on('data', (event, message) => {
+        const { data, symbol } = message;
+        const stockChart = new Chart(ctx, {
+          type: 'line',
+          data: {
+            datasets: [{
+              label: 'SMA',
+              data,
+              borderColor: '#50A885',
+              pointBackgroundColor: '#529B80',
+              pointStyle: 'circle',
+            }],
+          },
+          options: {
+            title: {
+              display: true,
+              text: `Simple Moving Average for ${symbol}`,
+              fontColor: '#50A885',
+            },
+            responsive: true,
+            scales: {
+              xAxes: [{
+                type: 'time',
+                time: {
+                  unit: 'day',
+                  // displayFormats: {
+                  //   minute: 'h:mm a'
+                  // },
+                }
+              }]
+            },
+            legend: {
+              display: false,
+            },
+            pan: {
+                enabled: true,
+                mode: 'x',
+            },
+            zoom: {
+              enabled: true,
+              drag: true,
+              mode: 'x',
+            }
+          }
+        });
+      });
+
+
+
+      // You can also require other files to run in this process
+      require('../renderer.js');
+    </script>
+  </body>
+</html>
+

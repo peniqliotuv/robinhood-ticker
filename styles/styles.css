@@ -1,6 +1,6 @@
 @font-face {
     font-family: 'Alte Din';
-    src: url('./assets/din1451alt.ttf');
+    src: url('../assets/din1451alt.ttf');
 }
 
 body {
