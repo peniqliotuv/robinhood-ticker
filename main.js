@@ -12,6 +12,8 @@ const path = require('path');
 const url = require('url');
 const { autoUpdater } = require('electron-updater');
 const openAboutWindow = require('about-window').default;
+
+const stockAPI = require('./StockAPI');
 const Store = require('electron-store');
 const store = new Store();
 
@@ -28,6 +30,7 @@ if (process.env.NODE_ENV === 'development') {
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 
+let stockInfoWindow = null;
 let preferences = null;
 let RobinHoodAPI = null;
 let tray = null;
@@ -191,7 +194,6 @@ const createTickerMenu = () => {
 
   // Create menuItems about our individual positions
   const template = positions.map((data) => {
-    // console.log(data);
     let symbol = data.symbol;
     let price = Number(data.quote.last_extended_hours_trade_price) || Number(data.quote.last_trade_price);
     let oldPrice = data.quote.previous_close;
@@ -212,7 +214,7 @@ const createTickerMenu = () => {
 
     return {
       label: `${symbol} | $${price.toFixed(2)} | ${sign}${difference}`,
-      click: () => {},
+      click: () => createStockInfoWindow(data.symbol),
     };
   });
 
@@ -303,18 +305,22 @@ const createPreferencesWindow = () => {
     protocol: 'file:',
     slashes: true,
   }));
-
-  preferences.webContents.openDevTools({ mode: 'undocked' })
+  // preferences.webContents.openDevTools({ mode: 'undocked' })
 
   preferences.webContents.on('did-finish-load', () => {
     preferences.webContents.send('preferences', store.get('preferences'));
   });
 
-
   preferences.on('close', () => {
     preferences = null;
   });
-}
+};
+
+
+const createStockInfoWindow = async (symbol) => {
+  const data = await stockAPI.getSMA(symbol);
+  console.log(data);
+};
 
 const isAuthenticated = () => store.get('data') ? true : false;
 
