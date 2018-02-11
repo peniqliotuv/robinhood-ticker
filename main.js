@@ -84,7 +84,6 @@ const changeRefreshRate = (rate) => {
 
 const fetchWithAuth = (url, opts) => {
   const options = Object.assign({}, opts, { headers: { Authorization: `Token ${RobinHoodAPI._token}` } });
-  console.log(options)
   return fetch(url, options);
 };
 
@@ -319,9 +318,10 @@ const createPreferencesWindow = () => {
 
 const createStockInfoWindow = async (symbol) => {
   if (stockInfoWindow !== null) {
-    stockInfoWindow.show();
-    return;
+    // Don't allow multiple stock info windows
+    stockInfoWindow.close();
   }
+
   stockInfoWindow = new BrowserWindow({
     height: 750,
     width: 1100,

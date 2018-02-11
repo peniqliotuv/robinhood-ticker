@@ -26,12 +26,11 @@ class StockAPI {
       time_period: 10,
     };
     const qs = queryString.stringify(query);
-    console.log(qs)
     try {
       const res = await fetch(`${this.HOST}/query?${qs}`);
       const json = await res.json();
       const data = json['Technical Analysis: SMA'];
-      console.log(data)
+      console.log(`Data for ${symbol} received.`);
       /* Transform into [{x: ... y: ...}, {}]*/
       return data;
     } catch (e) {

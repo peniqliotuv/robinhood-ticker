@@ -8,21 +8,31 @@
     <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js" /> -->
   </head>
   <body>
-    <div>
+    <div class="container">
+      <div id="loader" style="color: #529B80; position: absolute;" class="la-line-scale-pulse-out la-3x">
+          <div></div>
+          <div></div>
+          <div></div>
+          <div></div>
+          <div></div>
+      </div>
       <canvas id="stock-chart" width="1025" height="650"></canvas>
     </div>
     <script>
       const { remote, ipcRenderer } = require('electron');
       const Chart = require('chart.js');
 
-      const Hammer = require('hammerjs');
+      // const Hammer = require('hammerjs');
       const zoom = require('chartjs-plugin-zoom');
-      console.log(Hammer)
-      console.log(zoom)
 
       const ctx = document.getElementById('stock-chart');
 
       ipcRenderer.on('data', (event, message) => {
+        /* Removing the loader */
+        const loader = document.getElementById('loader');
+        loader.parentNode.removeChild(loader);
+        ctx.style.visibility = 'visible';
+
         const { data, symbol } = message;
         const stockChart = new Chart(ctx, {
           type: 'line',
@@ -38,32 +48,66 @@
           options: {
             title: {
               display: true,
+              fontFamily: 'Alte Din',
               text: `Simple Moving Average for ${symbol}`,
+              fontSize: 24,
+              fontStyle: 'normal',
               fontColor: '#50A885',
             },
-            responsive: true,
+            tooltips: {
+              titleFontFamily: 'Alte Din',
+              titleFontSize: 18,
+              titleMarginBottom: 10,
+              bodyFontSize: 14,
+              bodyFontFamily: 'Alte Din',
+              yPadding: 10,
+              xPadding: 8,
+            },
             scales: {
+              yAxes: [{
+                ticks: {
+                  fontSize: 14,
+                }
+              }],
               xAxes: [{
                 type: 'time',
+                ticks: {
+                  fontSize: 14,
+                },
                 time: {
                   unit: 'day',
-                  // displayFormats: {
-                  //   minute: 'h:mm a'
-                  // },
+                  displayFormats: {
+                    day: 'MM/DD'
+                  },
                 }
               }]
             },
             legend: {
               display: false,
+
             },
             pan: {
+                // Boolean to enable panning
                 enabled: true,
+
+                // Panning directions. Remove the appropriate direction to disable
+                // Eg. 'y' would only allow panning in the y direction
                 mode: 'x',
-            },
+
+              },
+
+            // Container for zoom options
             zoom: {
+              // Boolean to enable zooming
               enabled: true,
+
+              // Enable drag-to-zoom behavior
               drag: true,
+
+              // Zooming directions. Remove the appropriate direction to disable
+              // Eg. 'y' would only allow zooming in the y direction
               mode: 'x',
+
             }
           }
         });
