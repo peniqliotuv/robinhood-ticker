@@ -274,7 +274,7 @@ const createTickerMenu = () => {
         copyright: 'Copyright (c) 2018 Jerry Tsui',
         package_json_dir: __dirname,
         description: 'www.github.com/peniqliotuv',
-        open_devtools: process.env.NODE_ENV !== 'production',
+        // open_devtools: process.env.NODE_ENV !== 'production',
       }),
     },
     {
@@ -316,7 +316,7 @@ const createPreferencesWindow = () => {
 };
 
 
-const createStockInfoWindow = async (symbol) => {
+const createStockInfoWindow = (symbol) => {
   if (stockInfoWindow !== null) {
     // Don't allow multiple stock info windows
     stockInfoWindow.close();
@@ -338,12 +338,7 @@ const createStockInfoWindow = async (symbol) => {
   stockInfoWindow.webContents.openDevTools({ mode: 'undocked' })
 
   stockInfoWindow.webContents.on('did-finish-load', () => {
-    stockAPI.getSMA(symbol)
-      .then(data => {
-        const transformedData = Object.entries(data).map(entry => ({ x: new Date(entry[0]).toLocaleString(), y: entry[1].SMA }));
-        stockInfoWindow.webContents.send('data', { data: transformedData, symbol });
-      })
-      .catch(err => console.err(err));
+    stockInfoWindow.webContents.send('data', symbol);
   });
 
   stockInfoWindow.on('close', () => {

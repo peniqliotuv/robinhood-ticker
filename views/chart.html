@@ -20,6 +20,7 @@
     </div>
     <script>
       const { remote, ipcRenderer } = require('electron');
+      const stockAPI = require('../StockApi');
       const Chart = require('chart.js');
 
       // const Hammer = require('hammerjs');
@@ -27,92 +28,95 @@
 
       const ctx = document.getElementById('stock-chart');
 
-      ipcRenderer.on('data', (event, message) => {
-        /* Removing the loader */
-        const loader = document.getElementById('loader');
-        loader.parentNode.removeChild(loader);
-        ctx.style.visibility = 'visible';
+      ipcRenderer.on('data', (e, symbol) => {
+        stockAPI.getSMA(symbol)
+          .then(data => {
+            const transformed = Object.entries(data).map(entry => ({ x: new Date(entry[0]).toLocaleString(), y: entry[1].SMA }));
+            // stockInfoWindow.webContents.send('data', { data: transformedData, symbol });
+            const loader = document.getElementById('loader');
+            loader.parentNode.removeChild(loader);
+            ctx.style.visibility = 'visible';
 
-        const { data, symbol } = message;
-        const stockChart = new Chart(ctx, {
-          type: 'line',
-          data: {
-            datasets: [{
-              label: 'SMA',
-              data,
-              borderColor: '#50A885',
-              pointBackgroundColor: '#529B80',
-              pointStyle: 'circle',
-            }],
-          },
-          options: {
-            title: {
-              display: true,
-              fontFamily: 'Alte Din',
-              text: `Simple Moving Average for ${symbol}`,
-              fontSize: 24,
-              fontStyle: 'normal',
-              fontColor: '#50A885',
-            },
-            tooltips: {
-              titleFontFamily: 'Alte Din',
-              titleFontSize: 18,
-              titleMarginBottom: 10,
-              bodyFontSize: 14,
-              bodyFontFamily: 'Alte Din',
-              yPadding: 10,
-              xPadding: 8,
-            },
-            scales: {
-              yAxes: [{
-                ticks: {
-                  fontSize: 14,
-                }
-              }],
-              xAxes: [{
-                type: 'time',
-                ticks: {
-                  fontSize: 14,
-                },
-                time: {
-                  unit: 'day',
-                  displayFormats: {
-                    day: 'MM/DD'
-                  },
-                }
-              }]
-            },
-            legend: {
-              display: false,
-
-            },
-            pan: {
-                // Boolean to enable panning
-                enabled: true,
-
-                // Panning directions. Remove the appropriate direction to disable
-                // Eg. 'y' would only allow panning in the y direction
-                mode: 'x',
-
+            const stockChart = new Chart(ctx, {
+              type: 'line',
+              data: {
+                datasets: [{
+                  label: 'SMA',
+                  data: transformed,
+                  borderColor: '#50A885',
+                  pointBackgroundColor: '#529B80',
+                  pointStyle: 'circle',
+                }],
               },
+              options: {
+                title: {
+                  display: true,
+                  fontFamily: 'Alte Din',
+                  text: `Simple Moving Average for ${symbol}`,
+                  fontSize: 24,
+                  fontStyle: 'normal',
+                  fontColor: '#50A885',
+                },
+                tooltips: {
+                  titleFontFamily: 'Alte Din',
+                  titleFontSize: 18,
+                  titleMarginBottom: 10,
+                  bodyFontSize: 14,
+                  bodyFontFamily: 'Alte Din',
+                  yPadding: 10,
+                  xPadding: 8,
+                },
+                scales: {
+                  yAxes: [{
+                    ticks: {
+                      fontSize: 14,
+                    }
+                  }],
+                  xAxes: [{
+                    type: 'time',
+                    ticks: {
+                      fontSize: 14,
+                    },
+                    time: {
+                      unit: 'day',
+                      displayFormats: {
+                        day: 'MM/DD'
+                      },
+                    }
+                  }]
+                },
+                legend: {
+                  display: false,
 
-            // Container for zoom options
-            zoom: {
-              // Boolean to enable zooming
-              enabled: true,
+                },
+                pan: {
+                    // Boolean to enable panning
+                    enabled: true,
 
-              // Enable drag-to-zoom behavior
-              drag: true,
+                    // Panning directions. Remove the appropriate direction to disable
+                    // Eg. 'y' would only allow panning in the y direction
+                    mode: 'x',
 
-              // Zooming directions. Remove the appropriate direction to disable
-              // Eg. 'y' would only allow zooming in the y direction
-              mode: 'x',
+                  },
 
-            }
-          }
-        });
+                // Container for zoom options
+                zoom: {
+                  // Boolean to enable zooming
+                  enabled: true,
+
+                  // Enable drag-to-zoom behavior
+                  drag: true,
+
+                  // Zooming directions. Remove the appropriate direction to disable
+                  // Eg. 'y' would only allow zooming in the y direction
+                  mode: 'x',
+
+                }
+              }
+            });
+          })
+          .catch(err => console.err(err));
       });
-
 
 
       // You can also require other files to run in this process
