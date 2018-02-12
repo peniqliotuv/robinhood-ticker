@@ -35,7 +35,7 @@ body {
 }
 
 #equity-container {
-    width: 230px;
+    width: 235px;
     height: 80px;
     display: flex;
     flex-direction: column;
@@ -57,7 +57,7 @@ body {
 }
 
 #positions {
-    width: 230px;
+    width: 235px;
     max-height: 400px;
     overflow-y: scroll;
     /* flex:  1 1 auto; */

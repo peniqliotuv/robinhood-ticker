@@ -31,14 +31,17 @@
         </select>
         <label>View Change By</label>
       </div>
-      <div class="mui-select">
+     <!--  <div class="mui-select">
         <select id="select-equity">
           <option value="total-equity">Total Equity</option>
           <option value="share-price">Individual Share Price</option>
         </select>
         <label>View Equity By</label>
+      </div> -->
+      <div class="button-container">
+        <button type="button" onclick="submit()" class="mui-btn mui-btn--raised">Submit</button>
+        <button type="button" onclick="logout()" id="logout" class="mui-btn mui-btn--raised">Logout</button>
       </div>
-      <button type="button" onclick="submit()" class="mui-btn mui-btn--raised">Submit</button>
     </div>
 
 
@@ -73,20 +76,24 @@
             break;
           }
         }
-        for (let i = 0; i < selectEquity.options.length; ++i) {
-          if (selectEquity.options[i].value === viewEquityBy) {
-            selectEquity.selectedIndex = i;
-            break;
-          }
-        }
+        // for (let i = 0; i < selectEquity.options.length; ++i) {
+        //   if (selectEquity.options[i].value === viewEquityBy) {
+        //     selectEquity.selectedIndex = i;
+        //     break;
+        //   }
+        // }
       });
 
       function submit() {
         const refreshRate = selectRefresh.value;
         const viewChangeBy = selectChange.value;
-        const viewEquityBy = selectEquity.value;
-        ipcRenderer.send('preferences-saved', { refreshRate, viewChangeBy, viewEquityBy });
+        // const viewEquityBy = selectEquity.value;
+        ipcRenderer.send('preferences-saved', { refreshRate, viewChangeBy });
         window.close();
+      }
+
+      function logout() {
+        ipcRenderer.send('logout', true);
       }
 
       // You can also require other files to run in this process

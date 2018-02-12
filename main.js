@@ -45,10 +45,34 @@ ipcMain.on('data', (event, arg) => {
   console.log('data received from IPC');
   RobinHoodAPI = arg;
   store.set('data', RobinHoodAPI);
-  const contextMenu = createTickerMenu();
+  // const contextMenu = createTickerMenu();
   const equity = Number(RobinHoodAPI._portfolio.extended_hours_equity || RobinHoodAPI._portfolio.equity).toFixed(2);
-  tray.setTitle(`$${equity}`);
-  tray.setContextMenu(contextMenu);
+  if (mb === null) {
+    console.log('mb === null, creating mb');
+    tray.destroy();
+    tray = new Tray(ICON_LOGO);
+    mb = menubar({
+      dir: __dirname,
+      icon: `${__dirname}/assets/logo-16.png`,
+      preloadWindow: true,
+      index: `file://${__dirname}/views/menubar.html`,
+      width: 250,
+      height: 500,
+      tooltip: 'tooltip! ',
+      tray,
+    });
+    mb.window.webContents.on('did-finish-load', () => {
+      mb.window.webContents.send('data', { data: RobinHoodAPI, preferences: store.get('preferences') });
+    });
+    mb.on('show', () => {
+      mb.window.webContents.send('data', { data: RobinHoodAPI, preferences: store.get('preferences') });
+      // mb.window.openDevTools({ mode: 'undocked' });
+    });
+    mb.on('hide', () => console.log('MenuBar hidden'));
+  }
+  mb.tray.setTitle(`$${equity}`);
+  // tray.setTitle(`$${equity}`);
+  // tray.setContextMenu(contextMenu);
   refresh = startRefresh();
 });
 
@@ -57,8 +81,8 @@ ipcMain.on('preferences-saved', (event, arg) => {
   console.log(arg);
   store.set('preferences', arg);
   mb.window.webContents.send('data', { data: RobinHoodAPI, preferences: store.get('preferences') });
-  const contextMenu = createTickerMenu();
-  tray.setContextMenu(contextMenu);
+  // const contextMenu = createTickerMenu();
+  // tray.setContextMenu(contextMenu);
   refresh = startRefresh();
 });
 
@@ -69,6 +93,23 @@ ipcMain.on('show-stock-info', (event, symbol) => {
 ipcMain.on('open-preferences', (event, symbol) => {
   createPreferencesWindow();
 });
+
+ipcMain.on('logout', async (event, arg) => {
+  try {
+    const res = await fetchWithAuth('https://api.robinhood.com/api-token-logout/', { method: 'POST', Accept: 'application/json' });
+    RobinHoodAPI = null;
+    const contextMenu = createLoginMenu();
+    mb.tray.setTitle('');
+    mb.tray.setContextMenu(contextMenu);
+    mb = null;
+    if (preferences !== null) {
+      preferences.close();
+    }
+  } catch (e) {
+    console.error(e);
+    console.error(e.stack);
+  }
+})
 
 const startRefresh = () => {
   const refreshRate = store.get('preferences').refreshRate * 60 * 1000;
@@ -135,17 +176,21 @@ const refreshAccountData = async (accountNumber) => {
     json = await res.json();
     if (res.ok) {
       RobinHoodAPI._portfolio = json;
+      console.log('Robinhood API Portfolio')
       console.log(json);
     } else {
       console.log(json);
       throw new Error('Could not retrieve portfolio');
     }
 
-    const contextMenu = createTickerMenu();
-    tray.setContextMenu(contextMenu);
+    // const contextMenu = createTickerMenu();
+    // tray.setContextMenu(contextMenu);
     const equity = Number(RobinHoodAPI._portfolio.extended_hours_equity || RobinHoodAPI._portfolio.equity).toFixed(2);
     tray.setTitle(`$${equity}`);
+    mb.tray.setTitle(`${equity}`);
   } catch (e) {
+    console.error(e);
+    console.error(e.stack);
     throw e;
   }
 }
@@ -231,7 +276,6 @@ const createTickerMenu = () => {
 
 
   let dailyEquityDifference = Number(portfolio.equity) - Number(portfolio.equity_previous_close);
-  console.log(dailyEquityDifference);
   const sign = dailyEquityDifference >= 0 ? '+' : '-';
   if (viewChangeBy === 'percent') {
     dailyEquityDifference = `${Math.abs(100 * dailyEquityDifference/Number(portfolio.equity_previous_close)).toFixed(4)}%`;
@@ -317,7 +361,7 @@ const createPreferencesWindow = () => {
     protocol: 'file:',
     slashes: true,
   }));
-  // preferences.webContents.openDevTools({ mode: 'undocked' })
+  preferences.webContents.openDevTools({ mode: 'undocked' })
 
   preferences.webContents.on('did-finish-load', () => {
     preferences.webContents.send('preferences', store.get('preferences'));
@@ -394,11 +438,13 @@ const initializeApp = () => {
   tray = new Tray(ICON_LOGO);
 
   let contextMenu;
+  console.log(store.store);
   if (isAuthenticated()) {
+    console.log('authenticated')
     RobinHoodAPI = store.get('data');
-    contextMenu = createTickerMenu();
+    // contextMenu = createTickerMenu();
     const equity = Number(RobinHoodAPI._portfolio.extended_hours_equity || RobinHoodAPI._portfolio.equity).toFixed(2);
-    tray.setTitle(`$${equity}`);
+    // tray.setTitle(`$${equity}`);
     global.addAuthHeaders(RobinHoodAPI._token);
     mb = menubar({
       dir: __dirname,
@@ -407,7 +453,8 @@ const initializeApp = () => {
       index: `file://${__dirname}/views/menubar.html`,
       width: 250,
       height: 500,
-      tooltip: 'tooltip! '
+      tooltip: 'tooltip! ',
+      tray,
     });
     mb.tray.setTitle(`$${equity}`);
     mb.window.webContents.on('did-finish-load', () => {
@@ -421,10 +468,12 @@ const initializeApp = () => {
 
     refresh = startRefresh();
   } else {
+    console.log('not authenticated');
     contextMenu = createLoginMenu();
+    tray.setContextMenu(contextMenu);
   }
 
-  tray.setContextMenu(contextMenu);
+  // tray.setContextMenu(contextMenu);
 
   // Emitted when the window is closed.
   tray.on('closed', () => {

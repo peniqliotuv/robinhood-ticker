@@ -56,8 +56,9 @@ input {
     padding: 10px;
 }
 
+/* Ugh */
 .invalid > input::placeholder {
-    color: #E35F3E;
+    color: #E35F3E!important;
 }
 
 .invalid > .button {

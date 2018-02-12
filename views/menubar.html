@@ -73,10 +73,10 @@
         const portfolio = data._portfolio;
         const equity = `$${Number(portfolio.extended_hours_equity || portfolio.equity).toFixed(2)}`;
 
-        let equityDifference = Number(portfolio.equity) - Number(portfolio.equity_previous_close);
+        let equityDifference = Number(portfolio.equity) - Number(portfolio.adjusted_equity_previous_close);
         const sign = equityDifference >= 0 ? '+' : '-';
         if (preferences.viewChangeBy === 'percent') {
-          equityDifference = `${sign}${Math.abs(100 * equityDifference/Number(portfolio.equity_previous_close)).toFixed(4)}%`;
+          equityDifference = `${sign}${Math.abs(100 * equityDifference/Number(portfolio.adjusted_equity_previous_close)).toFixed(4)}%`;
         } else {
           equityDifference = `${sign}$${Math.abs(equityDifference.toFixed(2))}`;
         }
