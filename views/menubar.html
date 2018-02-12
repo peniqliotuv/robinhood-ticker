@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+  <head>
+
+    <meta charset="UTF-8">
+    <title>Menu Bar</title>
+    <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet">
+    <link href="https://cdn.muicss.com/mui-0.9.36/css/mui.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.muicss.com/mui-0.9.36/js/mui.min.js"></script>
+    <link rel="stylesheet" href="../styles/menubar.css" />
+  </head>
+  <body>
+
+    <div id="backdrop"></div>
+    <div class="container">
+      <div id="loader" style="color: #529B80; position: absolute;" class="la-line-scale-pulse-out la-3x">
+          <div></div>
+          <div></div>
+          <div></div>
+          <div></div>
+          <div></div>
+      </div>
+      <div id="equity-container">
+        <div id="day-end-equity">
+        </div>
+        <div id="profit">
+
+        </div>
+        <div id="after-hours-profit">
+
+        </div>
+      </div>
+      <div id="positions">
+
+      </div>
+    </div>
+
+
+
+    <script>
+      const { remote, ipcRenderer } = require('electron');
+      const moment = require('moment-timezone');
+
+      const equityContainer = document.getElementById('day-end-equity');
+      const profitContainer = document.getElementById('profit');
+      const afterHoursProfitContainer = document.getElementById('after-hours-profit');
+      const positionsContainer = document.getElementById('positions');
+
+      let data = null;
+      let preferences = null;
+
+      function isAfterHours() {
+        const EST = moment().tz('America/New_York');
+        const hours = EST.hours();
+        const minutes = EST.minutes();
+        if (hours < 15 || hours === 14 && minutes <= 29) {
+          return false;
+        }
+        return true;
+      }
+
+      /* Code to calculate the equity of a user's RH profile.
+        Takes into account after-hours markets.
+      */
+      function calculateEquity() {
+        const portfolio = data._portfolio;
+        const equity = `$${Number(portfolio.extended_hours_equity || portfolio.equity).toFixed(2)}`;
+
+        let equityDifference = Number(portfolio.equity) - Number(portfolio.equity_previous_close);
+        const sign = equityDifference >= 0 ? '+' : '-';
+        if (preferences.viewChangeBy === 'percent') {
+          equityDifference = `${sign}${Math.abs(100 * equityDifference/Number(portfolio.equity_previous_close)).toFixed(4)}%`;
+        } else {
+          equityDifference = `${sign}$${Math.abs(equityDifference.toFixed(2))}`;
+        }
+
+        let afterHoursEquityDifference = null;
+        if (isAfterHours()) {
+          afterHoursEquityDifference = Number(portfolio.extended_hours_equity) - Number(portfolio.equity);
+          const afterHoursSign = afterHoursEquityDifference >= 0 ? '+' : '-';
+          if (preferences.viewChangeBy === 'percent') {
+            afterHoursEquityDifference = `${afterHoursSign}${Math.abs(100 * afterHoursEquityDifference/Number(portfolio.equity)).toFixed(4)}%`;
+          } else {
+            afterHoursEquityDifference = `${afterHoursSign}$${Math.abs(afterHoursEquityDifference.toFixed(2))}`;
+          }
+        }
+        return { equity, equityDifference, afterHoursEquityDifference };
+      }
+
+      /*
+        Note to anyone who might be reading this:
+        If you want to start working on a project and think
+        "Oh okay I won't use a framework because it's overkill",
+        please do not make the mistake I did and use vanilla JS.
+        I WISH I WROTE THIS IN REACT >:(
+      */
+      ipcRenderer.on('data', (event, message) => {
+        data = message.data;
+        preferences = message.preferences;
+
+        console.log(data, preferences);
+        const loader = document.getElementById('loader');
+        loader.style.display = 'none';
+        // loader.parentNode.removeChild(loader);
+
+        const { equity, equityDifference, afterHoursEquityDifference } = calculateEquity();
+        equityContainer.innerHTML = equity;
+        profitContainer.innerHTML = `${equityDifference} ${moment().format('MMM DD, YYYY')}`;
+        if (afterHoursEquityDifference) {
+          afterHoursProfitContainer.innerHTML = `${afterHoursEquityDifference} After Hours`;
+        }
+
+        /* Delete Child nodes from positions container. */
+        while (positionsContainer.hasChildNodes()) {
+          positionsContainer.removeChild(positionsContainer.lastChild);
+        }
+
+        const fragment = document.createDocumentFragment();
+        data._positions.forEach((data) => {
+          let price = Number(data.quote.last_extended_hours_trade_price) || Number(data.quote.last_trade_price);
+          let oldPrice = data.quote.previous_close;
+
+          let difference = (price - oldPrice);
+          const sign = difference >= 0 ? '+' : '-';
+          if (preferences.viewChangeBy === 'percent') {
+            difference = `${sign}${Math.abs(100 * difference/Number(oldPrice)).toFixed(4)}%`
+          } else {
+            difference = `${sign}$${Math.abs(difference.toFixed(2))}`;
+          }
+
+          const el = document.createElement('div');
+          el.className = 'stock';
+
+          const symbolContainer = document.createElement('div');
+          symbolContainer.className = 'symbol-container';
+
+          const symbol = document.createElement('div');
+          symbol.innerHTML = data.symbol;
+          symbol.className = 'symbol';
+
+          const numShares = document.createElement('p');
+          numShares.innerHTML = `${data.quantity} ${data.quantity > 1 ? 'Shares' : 'Share'}`;
+
+          symbolContainer.appendChild(symbol);
+          symbolContainer.appendChild(numShares);
+
+          const differenceContainer = document.createElement('div');
+          differenceContainer.className = 'difference-container';
+          differenceContainer.innerHTML = difference;
+
+          el.appendChild(symbolContainer);
+          el.appendChild(differenceContainer);
+          fragment.append(el);
+        });
+        positionsContainer.appendChild(fragment);
+      });
+
+      require('../renderer.js');
+    </script>
+  </body>
+</html>
+

@@ -56,6 +56,7 @@ ipcMain.on('preferences-saved', (event, arg) => {
   console.log('Preferences Saved!');
   console.log(arg);
   store.set('preferences', arg);
+  mb.window.webContents.send('data', { data: RobinHoodAPI, preferences: store.get('preferences') });
   const contextMenu = createTickerMenu();
   tray.setContextMenu(contextMenu);
   refresh = startRefresh();
@@ -65,9 +66,7 @@ const startRefresh = () => {
   const refreshRate = store.get('preferences').refreshRate * 60 * 1000;
   console.log(`Refreshing at rate: ${refreshRate}`);
   return setInterval(async () => {
-
     try {
-
       await refreshAccountData(RobinHoodAPI._accountNumber);
 
     } catch (e) {
@@ -384,9 +383,6 @@ const initializeApp = () => {
     win = null;
   });
 
-  // if (process.env.NODE_ENV === 'development') {
-    // win.openDevTools({ mode: 'detach' });
-  // }
   tray = new Tray(ICON_LOGO);
 
   let contextMenu;
@@ -402,14 +398,19 @@ const initializeApp = () => {
       preloadWindow: true,
       index: `file://${__dirname}/views/menubar.html`,
       width: 250,
-      height: 450,
+      height: 500,
       tooltip: 'tooltip! '
     });
     mb.tray.setTitle(`$${equity}`);
     mb.window.webContents.on('did-finish-load', () => {
       mb.window.webContents.send('data', { data: RobinHoodAPI, preferences: store.get('preferences') });
     });
-    mb.on('show', () => mb.window.openDevTools({ mode: 'undocked' }))
+    mb.on('show', () => {
+      mb.window.webContents.send('data', { data: RobinHoodAPI, preferences: store.get('preferences') });
+      // mb.window.openDevTools({ mode: 'undocked' });
+    });
+    mb.on('hide', () => console.log('MenuBar hidden'));
+
     refresh = startRefresh();
   } else {
     contextMenu = createLoginMenu();
