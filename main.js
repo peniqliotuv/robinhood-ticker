@@ -12,8 +12,8 @@ const path = require('path');
 const url = require('url');
 const { autoUpdater } = require('electron-updater');
 const openAboutWindow = require('about-window').default;
+const menubar = require('menubar');
 
-const stockAPI = require('./StockAPI');
 const Store = require('electron-store');
 const store = new Store();
 
@@ -30,6 +30,8 @@ if (process.env.NODE_ENV === 'development') {
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 
+// menubar
+let mb = null;
 let stockInfoWindow = null;
 let preferences = null;
 let RobinHoodAPI = null;
@@ -63,8 +65,11 @@ const startRefresh = () => {
   const refreshRate = store.get('preferences').refreshRate * 60 * 1000;
   console.log(`Refreshing at rate: ${refreshRate}`);
   return setInterval(async () => {
+
     try {
+
       await refreshAccountData(RobinHoodAPI._accountNumber);
+
     } catch (e) {
       console.log('Could not refresh');
       console.log(e);
@@ -282,6 +287,7 @@ const createTickerMenu = () => {
       role: 'quit',
     },
   );
+
   return Menu.buildFromTemplate(template);
 }
 
@@ -381,7 +387,6 @@ const initializeApp = () => {
   // if (process.env.NODE_ENV === 'development') {
     // win.openDevTools({ mode: 'detach' });
   // }
-
   tray = new Tray(ICON_LOGO);
 
   let contextMenu;
@@ -391,6 +396,20 @@ const initializeApp = () => {
     const equity = Number(RobinHoodAPI._portfolio.extended_hours_equity || RobinHoodAPI._portfolio.equity).toFixed(2);
     tray.setTitle(`$${equity}`);
     global.addAuthHeaders(RobinHoodAPI._token);
+    mb = menubar({
+      dir: __dirname,
+      icon: `${__dirname}/assets/logo-16.png`,
+      preloadWindow: true,
+      index: `file://${__dirname}/views/menubar.html`,
+      width: 250,
+      height: 450,
+      tooltip: 'tooltip! '
+    });
+    mb.tray.setTitle(`$${equity}`);
+    mb.window.webContents.on('did-finish-load', () => {
+      mb.window.webContents.send('data', { data: RobinHoodAPI, preferences: store.get('preferences') });
+    });
+    mb.on('show', () => mb.window.openDevTools({ mode: 'undocked' }))
     refresh = startRefresh();
   } else {
     contextMenu = createLoginMenu();
@@ -402,6 +421,9 @@ const initializeApp = () => {
   tray.on('closed', () => {
     tray = null;
   });
+
+
+  // mb.on('show', );
 };
 
 // This method will be called when Electron has finished
