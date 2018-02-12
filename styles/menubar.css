@@ -1,12 +1,16 @@
 @font-face {
-    font-family: 'Alte Din';
-    src: url('../assets/din1451alt.ttf');
+    font-family: 'Din';
+    src: url('../assets/DIN-Medium.ttf');
 }
 
+@font-face {
+    font-family: 'Din-Light';
+    src:  url('../assets/DIN-Light.ttf');
+}
 
 body {
     display: flex;
-    font-family: 'Alte Din', sans-serif;
+    font-family: 'Din-Light', sans-serif;
     font-weight: 100;
     user-select: none;
     background-color:  #61CA9D;
@@ -48,6 +52,10 @@ body {
     margin: 0;
 }
 
+#profit {
+    font-family: 'Din';
+}
+
 #positions {
     width: 230px;
     max-height: 400px;
@@ -56,6 +64,10 @@ body {
     background-color: #303032;
     border-radius: 2px;
     margin: 10px 0;
+}
+
+#positions::-webkit-scrollbar {
+  display: none;
 }
 
 .stock {
@@ -89,6 +101,7 @@ body {
 
 .symbol-container > p {
     margin: 0;
+    font-family: 'Din-Light';
     font-size: 12px;
     color:  lightgrey;
 }
@@ -99,6 +112,23 @@ body {
     font-size: 24px;
     color: #61CA9D;
 }
+
+#preferences {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+}
+
+#preferences:hover {
+    cursor: pointer;
+}
+
+#preferences > img {
+    height: 24px;
+    width: 24px;
+}
+
+
 
 /*!
  * Load Awesome v1.1.0 (http://github.danielcardoso.net/load-awesome/)

@@ -1,10 +1,15 @@
 @font-face {
-    font-family: 'Alte Din';
-    src: url('../assets/din1451alt.ttf');
+    font-family: 'Din';
+    src: url('../assets/DIN-Medium.ttf');
+}
+
+@font-face {
+    font-family: 'Din-Light';
+    src:  url('../assets/DIN-Light.ttf');
 }
 
 body {
-    font-family: 'Alte Din', sans-serif!important;
+    font-family: 'Din-Light', sans-serif!important;
 }
 
 .container {

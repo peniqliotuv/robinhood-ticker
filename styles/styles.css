@@ -1,6 +1,11 @@
 @font-face {
-    font-family: 'Alte Din';
-    src: url('../assets/din1451alt.ttf');
+    font-family: 'Din';
+    src: url('../assets/DIN-Medium.ttf');
+}
+
+@font-face {
+    font-family: 'Din-Light';
+    src:  url('../assets/DIN-Light.ttf');
 }
 
 body {
@@ -8,14 +13,14 @@ body {
     display: flex;
     align-items: center;
     flex-direction: column;
-    font-family: 'Alte Din', sans-serif;
+    font-family: 'Din-Light', sans-serif;
     letter-spacing: 0.1em;
     font-weight: 100;
     user-select: none;
 }
 
 input {
-    font-family: 'Alte Din';
+    font-family: 'Din-Light';
     letter-spacing: 0.05em;
 }
 

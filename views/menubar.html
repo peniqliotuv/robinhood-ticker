@@ -21,6 +21,9 @@
           <div></div>
       </div>
       <div id="equity-container">
+        <div id="preferences" onclick="openPreferences()">
+          <img src="../assets/settings-work-tool.png" />
+        </div>
         <div id="day-end-equity">
         </div>
         <div id="profit">
@@ -57,6 +60,10 @@
           return false;
         }
         return true;
+      }
+
+      function openPreferences() {
+        ipcRenderer.send('open-preferences', true);
       }
 
       /* Code to calculate the equity of a user's RH profile.
@@ -130,6 +137,9 @@
 
           const el = document.createElement('div');
           el.className = 'stock';
+          el.onclick = () => {
+            ipcRenderer.send('show-stock-info', data.symbol);
+          }
 
           const symbolContainer = document.createElement('div');
           symbolContainer.className = 'symbol-container';

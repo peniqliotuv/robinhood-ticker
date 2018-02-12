@@ -1,6 +1,11 @@
 @font-face {
-    font-family: 'Alte Din';
-    src: url('../assets/din1451alt.ttf');
+    font-family: 'Din';
+    src: url('../assets/DIN-Medium.ttf');
+}
+
+@font-face {
+    font-family: 'Din-Light';
+    src:  url('../assets/DIN-Light.ttf');
 }
 
 
@@ -8,17 +13,17 @@ body {
     display: flex;
     height: 100vh;
     overflow-y: hidden;
-    font-family: 'Alte Din', sans-serif;
+    font-family: 'Din-Light', sans-serif;
     font-weight: 100;
     user-select: none;
     background-color:  #61CA9D;
 }
 
 input {
-    font-family: 'Alte Din';
+    font-family: 'Din-Light';
 }
 
-.loader,
+/* .loader,
 .loader:after {
   border-radius: 50%;
   width: 10em;
@@ -58,7 +63,7 @@ input {
     -webkit-transform: rotate(360deg);
     transform: rotate(360deg);
   }
-}
+} */
 
 
 #preferences-form {

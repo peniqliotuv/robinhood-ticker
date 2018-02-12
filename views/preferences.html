@@ -10,7 +10,7 @@
   </head>
   <body>
 
-    <div id="loader" class="loader">Loading...</div>
+    <!-- <div id="loader" class="loader">Loading...</div> -->
     <div id="backdrop"></div>
     <div id="preferences-form" class="mui-form">
       <div class="mui-select">
@@ -59,7 +59,7 @@
       ipcRenderer.on('preferences', (event, message) => {
         const { refreshRate, viewChangeBy, viewEquityBy } = message;
         console.log(message);
-        document.getElementById('loader').style.display = "none";
+        // document.getElementById('loader').style.display = "none";
         document.getElementById('preferences-form').style.visibility = "visible";
         for (let i = 0; i < selectRefresh.options.length; ++i) {
           if (selectRefresh.options[i].value == refreshRate) {

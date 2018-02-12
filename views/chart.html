@@ -23,6 +23,12 @@
       const stockAPI = require('../StockApi');
       const Chart = require('chart.js');
 
+      document.onkeydown = (event) => {
+        if (event.keyCode === 27) {
+          window.close();
+        }
+      }
+
       // const Hammer = require('hammerjs');
       const zoom = require('chartjs-plugin-zoom');
 
@@ -51,18 +57,18 @@
               options: {
                 title: {
                   display: true,
-                  fontFamily: 'Alte Din',
+                  fontFamily: 'Din',
                   text: `Simple Moving Average for ${symbol}`,
                   fontSize: 24,
                   fontStyle: 'normal',
                   fontColor: '#50A885',
                 },
                 tooltips: {
-                  titleFontFamily: 'Alte Din',
+                  titleFontFamily: 'Din-Light',
                   titleFontSize: 18,
                   titleMarginBottom: 10,
                   bodyFontSize: 14,
-                  bodyFontFamily: 'Alte Din',
+                  bodyFontFamily: 'Din-Light',
                   yPadding: 10,
                   xPadding: 8,
                 },

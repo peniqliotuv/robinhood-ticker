@@ -62,6 +62,14 @@ ipcMain.on('preferences-saved', (event, arg) => {
   refresh = startRefresh();
 });
 
+ipcMain.on('show-stock-info', (event, symbol) => {
+  createStockInfoWindow(symbol);
+});
+
+ipcMain.on('open-preferences', (event, symbol) => {
+  createPreferencesWindow();
+});
+
 const startRefresh = () => {
   const refreshRate = store.get('preferences').refreshRate * 60 * 1000;
   console.log(`Refreshing at rate: ${refreshRate}`);
