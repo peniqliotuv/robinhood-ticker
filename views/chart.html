@@ -34,6 +34,7 @@
 
       const ctx = document.getElementById('stock-chart');
 
+
       ipcRenderer.on('data', (e, data) => {
         const loader = document.getElementById('loader');
         const { symbol, color } = data;
@@ -41,6 +42,8 @@
         loader.style.color = color;
         stockAPI.getSMA(symbol)
           .then(data => {
+            console.log('Data Received:');
+            console.log(data);
             const transformed = Object.entries(data).map(entry => ({ x: new Date(entry[0]).toLocaleString(), y: entry[1].SMA }));
             loader.parentNode.removeChild(loader);
             ctx.style.visibility = 'visible';
@@ -54,6 +57,7 @@
                   borderColor: color,
                   pointBackgroundColor: color,
                   pointStyle: 'circle',
+                  radius: 3,
                 }],
               },
               options: {
@@ -123,7 +127,16 @@
               }
             });
           })
-          .catch(err => console.error(err));
+          .catch(err => {
+            console.error(err);
+            ctx.remove();
+            document.getElementById('loader').remove();
+            const errorContainer = document.createElement('div');
+            errorContainer.className = 'error-container';
+            errorContainer.style.color = color;
+            errorContainer.innerHTML = 'Unable to retrieve data from the server';
+            document.getElementsByClassName('container')[0].appendChild(errorContainer);
+          });
       });
 
 

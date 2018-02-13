@@ -32,6 +32,7 @@ class StockAPI {
       const data = json['Technical Analysis: SMA'];
       console.log(`Data for ${symbol} received.`);
       /* Transform into [{x: ... y: ...}, {}]*/
+      console.log(json);
       return data;
     } catch (e) {
       console.error(e);
