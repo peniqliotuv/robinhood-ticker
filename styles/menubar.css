@@ -85,6 +85,24 @@ body {
     background-color: #212025;
 }
 
+.stock > .symbol-container > div,
+.stock > .symbol-container > p,
+.stock > .difference-container {
+    opacity: 1;
+    transition: opacity 0.25s;
+}
+
+.blur > .symbol-container > div,
+.blur > .symbol-container > p,
+.blur > .difference-container {
+    opacity: 0;
+}
+
+.blur:hover {
+    cursor: default;
+    background-color: initial;
+}
+
 .symbol-container {
     display:  flex;
     flex-direction: column;
@@ -124,6 +142,21 @@ body {
 }
 
 #preferences > img {
+    height: 24px;
+    width: 24px;
+}
+
+#reload {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+}
+
+#reload:hover {
+    cursor: pointer;
+}
+
+#reload > img {
     height: 24px;
     width: 24px;
 }

@@ -109,7 +109,22 @@ ipcMain.on('logout', async (event, arg) => {
     console.error(e);
     console.error(e.stack);
   }
-})
+});
+
+ipcMain.on('manual-refresh', async (event, arg) => {
+  console.log('Manual Refresh received');
+  try {
+    await refreshAccountData(RobinHoodAPI._accountNumber);
+    console.log('Finished refreshing account data');
+    mb.window.webContents.send('data', { data: RobinHoodAPI, preferences: store.get('preferences') });
+  } catch (e) {
+    console.error(e);
+    dialog.showMessageBox({
+      type: 'error',
+      message: 'Unable to refresh account data.',
+    });
+  }
+});
 
 const startRefresh = () => {
   const refreshRate = store.get('preferences').refreshRate * 60 * 1000;
@@ -190,6 +205,8 @@ const refreshAccountData = async (accountNumber) => {
     mb.tray.setTitle(`${equity}`);
   } catch (e) {
     console.error(e);
+    console.log('ERROR NAME');
+    console.log(e.name);
     console.error(e.stack);
     throw e;
   }
@@ -242,105 +259,6 @@ const createLoginMenu = () => {
   );
   return Menu.buildFromTemplate(template);
 };
-
-const createTickerMenu = () => {
-  // Retrieve preferences + user data
-  const { _portfolio: portfolio, _positions: positions } = RobinHoodAPI;
-  const { viewChangeBy, viewEquityBy } = store.get('preferences');
-
-  // Create menuItems about our individual positions
-  const template = positions.map((data) => {
-    let symbol = data.symbol;
-    let price = Number(data.quote.last_extended_hours_trade_price) || Number(data.quote.last_trade_price);
-    let oldPrice = data.quote.previous_close;
-    if (viewEquityBy === 'total-equity') {
-      price *= data.quantity;
-      oldPrice *= data.quantity;
-    } else {
-      symbol += ` (${data.quantity})`
-    }
-
-    let difference = (price - oldPrice);
-    const sign = difference >= 0 ? '+' : '-';
-    if (viewChangeBy === 'percent') {
-      difference = `${Math.abs(100 * difference/Number(oldPrice)).toFixed(4)}%`
-    } else {
-      difference = Math.abs(difference.toFixed(2));
-    }
-
-    return {
-      label: `${symbol} | $${price.toFixed(2)} | ${sign}${difference}`,
-      click: () => createStockInfoWindow(data.symbol),
-    };
-  });
-
-
-  let dailyEquityDifference = Number(portfolio.equity) - Number(portfolio.equity_previous_close);
-  const sign = dailyEquityDifference >= 0 ? '+' : '-';
-  if (viewChangeBy === 'percent') {
-    dailyEquityDifference = `${Math.abs(100 * dailyEquityDifference/Number(portfolio.equity_previous_close)).toFixed(4)}%`;
-  } else {
-    dailyEquityDifference = Math.abs(dailyEquityDifference.toFixed(2));
-  }
-
-  template.unshift(
-    {
-      label: `Today: ${sign}${dailyEquityDifference}`
-    },
-    {
-      type: 'separator',
-    },
-  );
-  template.push(
-    {
-      type: 'separator',
-    },
-    {
-      label: 'Manual Refresh',
-      click: async (menuItem, browserWindow) => {
-        try {
-          await refreshAccountData(RobinHoodAPI._accountNumber);
-        } catch (e) {
-          console.error(e);
-          dialog.showMessageBox({
-            type: 'error',
-            message: 'Unable to refresh account data.',
-          });
-        }
-      },
-    },
-    {
-      label: 'Preferences',
-      click: () => createPreferencesWindow(),
-    },
-    {
-      label: 'Logout',
-      click: async () => {
-        const res = await fetchWithAuth('https://api.robinhood.com/api-token-logout/', { method: 'POST', Accept: 'application/json' });
-        RobinHoodAPI = null;
-        const contextMenu = createLoginMenu();
-        tray.setTitle('');
-        tray.setContextMenu(contextMenu);
-      },
-    },
-    {
-      label: 'About',
-      click: () => openAboutWindow({
-        icon_path: ICON_LOGO_LARGE,
-        copyright: 'Copyright (c) 2018 Jerry Tsui',
-        package_json_dir: __dirname,
-        description: 'www.github.com/peniqliotuv',
-        // open_devtools: process.env.NODE_ENV !== 'production',
-      }),
-    },
-    {
-      label: 'Quit',
-      role: 'quit',
-    },
-  );
-
-  return Menu.buildFromTemplate(template);
-}
 
 const createPreferencesWindow = () => {
   /* Prevent creation of unncessary number of windows*/
@@ -462,7 +380,7 @@ const initializeApp = () => {
     });
     mb.on('show', () => {
       mb.window.webContents.send('data', { data: RobinHoodAPI, preferences: store.get('preferences') });
-      // mb.window.openDevTools({ mode: 'undocked' });
+      mb.window.openDevTools({ mode: 'undocked' });
     });
     mb.on('hide', () => console.log('MenuBar hidden'));
 
@@ -473,15 +391,11 @@ const initializeApp = () => {
     tray.setContextMenu(contextMenu);
   }
 
-  // tray.setContextMenu(contextMenu);
-
   // Emitted when the window is closed.
   tray.on('closed', () => {
     tray = null;
   });
 
-
-  // mb.on('show', );
 };
 
 // This method will be called when Electron has finished

@@ -24,17 +24,17 @@
         <div id="preferences" onclick="openPreferences()">
           <img src="../assets/settings-work-tool.png" />
         </div>
+        <div id="reload" onclick="refresh()">
+          <img src="../assets/reload.png" />
+        </div>
         <div id="day-end-equity">
         </div>
         <div id="profit">
-
         </div>
         <div id="after-hours-profit">
-
         </div>
       </div>
       <div id="positions">
-
       </div>
     </div>
 
@@ -64,6 +64,17 @@
 
       function openPreferences() {
         ipcRenderer.send('open-preferences', true);
+      }
+
+      /* Triggers a manual refresh */
+      function refresh() {
+        loader.style.display = 'block';
+        positionsContainer.childNodes.forEach((el) => {
+          el.classList.add('blur');
+        });
+        ipcRenderer.send('manual-refresh', true);
+        /* BLUR OUT ALL OF THE OTHER STOCK THINGS */
+
       }
 
       /* Code to calculate the equity of a user's RH profile.
