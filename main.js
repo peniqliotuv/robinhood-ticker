@@ -278,7 +278,7 @@ const createPreferencesWindow = () => {
     protocol: 'file:',
     slashes: true,
   }));
-  preferences.webContents.openDevTools({ mode: 'undocked' })
+  // preferences.webContents.openDevTools({ mode: 'undocked' })
 
   preferences.webContents.on('did-finish-load', () => {
     preferences.webContents.send('preferences', store.get('preferences'));
@@ -310,7 +310,7 @@ const createStockInfoWindow = (symbol, color) => {
     slashes: true,
   }));
 
-  stockInfoWindow.webContents.openDevTools({ mode: 'undocked' })
+  // stockInfoWindow.webContents.openDevTools({ mode: 'undocked' })
 
   stockInfoWindow.webContents.on('did-finish-load', () => {
     stockInfoWindow.webContents.send('data', { symbol, color });
@@ -369,7 +369,7 @@ const initializeApp = () => {
       index: `file://${__dirname}/views/menubar.html`,
       width: 250,
       height: 500,
-      alwaysOnTop: true,
+      // alwaysOnTop: true,
       tray,
     });
 

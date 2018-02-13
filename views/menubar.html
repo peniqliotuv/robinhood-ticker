@@ -68,6 +68,7 @@
       /* Triggers a manual refresh */
       function refresh() {
         loader.style.display = 'block';
+        document.getElementById('reload').children[0].classList.add('reloading')
         positionsContainer.childNodes.forEach((el) => {
           el.classList.add('blur');
         });
@@ -120,6 +121,8 @@
         // console.log(data, preferences);
         const loader = document.getElementById('loader');
         loader.style.display = 'none';
+
+        document.getElementById('reload').children[0].className = '';
         // loader.parentNode.removeChild(loader);
 
         const { equity, equityDifference, afterHoursEquityDifference, didProfit } = calculateEquity();

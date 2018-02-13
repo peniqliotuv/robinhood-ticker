@@ -14,8 +14,12 @@ body {
     font-weight: 100;
     user-select: none;
     background-color:  #61CA9D;
+
 }
 
+@keyframes rotate {
+  100% { transform: rotate(360deg); }
+}
 body.equity-loss {
     background-color: #E35F3E;
 }
@@ -167,6 +171,11 @@ body.equity-loss {
 #reload > img {
     height: 24px;
     width: 24px;
+
+}
+
+.reloading {
+    animation: rotate 1.5s linear infinite;
 }
 
 
