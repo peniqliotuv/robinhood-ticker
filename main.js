@@ -45,7 +45,6 @@ ipcMain.on('data', (event, arg) => {
   console.log('data received from IPC');
   RobinHoodAPI = arg;
   store.set('data', RobinHoodAPI);
-  // const contextMenu = createTickerMenu();
   const equity = Number(RobinHoodAPI._portfolio.extended_hours_equity || RobinHoodAPI._portfolio.equity).toFixed(2);
   if (mb === null) {
     console.log('mb === null, creating mb');
@@ -58,7 +57,7 @@ ipcMain.on('data', (event, arg) => {
       index: `file://${__dirname}/views/menubar.html`,
       width: 250,
       height: 500,
-      tooltip: 'tooltip! ',
+      alwaysOnTop: true,
       tray,
     });
     mb.window.webContents.on('did-finish-load', () => {
@@ -71,8 +70,6 @@ ipcMain.on('data', (event, arg) => {
     mb.on('hide', () => console.log('MenuBar hidden'));
   }
   mb.tray.setTitle(`$${equity}`);
-  // tray.setTitle(`$${equity}`);
-  // tray.setContextMenu(contextMenu);
   refresh = startRefresh();
 });
 
@@ -81,13 +78,12 @@ ipcMain.on('preferences-saved', (event, arg) => {
   console.log(arg);
   store.set('preferences', arg);
   mb.window.webContents.send('data', { data: RobinHoodAPI, preferences: store.get('preferences') });
-  // const contextMenu = createTickerMenu();
-  // tray.setContextMenu(contextMenu);
   refresh = startRefresh();
 });
 
-ipcMain.on('show-stock-info', (event, symbol) => {
-  createStockInfoWindow(symbol);
+ipcMain.on('show-stock-info', (event, arg) => {
+  const { symbol, color } = arg;
+  createStockInfoWindow(symbol, color);
 });
 
 ipcMain.on('open-preferences', (event, symbol) => {
@@ -115,15 +111,17 @@ ipcMain.on('manual-refresh', async (event, arg) => {
   console.log('Manual Refresh received');
   try {
     await refreshAccountData(RobinHoodAPI._accountNumber);
-    console.log('Finished refreshing account data');
+    console.log('Finished manual refresh.');
     mb.window.webContents.send('data', { data: RobinHoodAPI, preferences: store.get('preferences') });
   } catch (e) {
+    console.error('***************************************')
     console.error(e);
-    dialog.showMessageBox({
-      type: 'error',
-      message: 'Unable to refresh account data.',
-    });
+    console.error(e.stack);
   }
+});
+
+ipcMain.on('app-quit', (event, arg) => {
+  app.quit();
 });
 
 const startRefresh = () => {
@@ -132,7 +130,8 @@ const startRefresh = () => {
   return setInterval(async () => {
     try {
       await refreshAccountData(RobinHoodAPI._accountNumber);
-
+      console.log('Finished automatic refresh.');
+      mb.window.webContents.send('data', { data: RobinHoodAPI, preferences: store.get('preferences') });
     } catch (e) {
       console.log('Could not refresh');
       console.log(e);
@@ -198,8 +197,6 @@ const refreshAccountData = async (accountNumber) => {
       throw new Error('Could not retrieve portfolio');
     }
 
-    // const contextMenu = createTickerMenu();
-    // tray.setContextMenu(contextMenu);
     const equity = Number(RobinHoodAPI._portfolio.extended_hours_equity || RobinHoodAPI._portfolio.equity).toFixed(2);
     tray.setTitle(`$${equity}`);
     mb.tray.setTitle(`${equity}`);
@@ -208,7 +205,7 @@ const refreshAccountData = async (accountNumber) => {
     console.log('ERROR NAME');
     console.log(e.name);
     console.error(e.stack);
-    throw e;
+    // throw e;
   }
 }
 
@@ -221,6 +218,7 @@ const createLoginWindow = () => {
     center: true,
     title: 'RobinHood Ticker',
     resizable: false,
+    titleBarStyle: 'hidden',
     show: false,
   });
 };
@@ -272,6 +270,7 @@ const createPreferencesWindow = () => {
     width: 300,
     resizable: false,
     backgroundColor: '#212025',
+    titleBarStyle: 'hidden',
   });
 
   preferences.loadURL(url.format({
@@ -291,7 +290,7 @@ const createPreferencesWindow = () => {
 };
 
 
-const createStockInfoWindow = (symbol) => {
+const createStockInfoWindow = (symbol, color) => {
   if (stockInfoWindow !== null) {
     // Don't allow multiple stock info windows
     stockInfoWindow.close();
@@ -303,6 +302,7 @@ const createStockInfoWindow = (symbol) => {
     resizable: false,
     title: `${symbol}`,
     backgroundColor: '#212025',
+    titleBarStyle: 'hidden',
   });
   stockInfoWindow.loadURL(url.format({
     pathname: path.join(__dirname, 'views/chart.html'),
@@ -313,7 +313,7 @@ const createStockInfoWindow = (symbol) => {
   stockInfoWindow.webContents.openDevTools({ mode: 'undocked' })
 
   stockInfoWindow.webContents.on('did-finish-load', () => {
-    stockInfoWindow.webContents.send('data', symbol);
+    stockInfoWindow.webContents.send('data', { symbol, color });
   });
 
   stockInfoWindow.on('close', () => {
@@ -360,9 +360,7 @@ const initializeApp = () => {
   if (isAuthenticated()) {
     console.log('authenticated')
     RobinHoodAPI = store.get('data');
-    // contextMenu = createTickerMenu();
     const equity = Number(RobinHoodAPI._portfolio.extended_hours_equity || RobinHoodAPI._portfolio.equity).toFixed(2);
-    // tray.setTitle(`$${equity}`);
     global.addAuthHeaders(RobinHoodAPI._token);
     mb = menubar({
       dir: __dirname,
@@ -371,16 +369,17 @@ const initializeApp = () => {
       index: `file://${__dirname}/views/menubar.html`,
       width: 250,
       height: 500,
-      tooltip: 'tooltip! ',
+      alwaysOnTop: true,
       tray,
     });
+
     mb.tray.setTitle(`$${equity}`);
     mb.window.webContents.on('did-finish-load', () => {
       mb.window.webContents.send('data', { data: RobinHoodAPI, preferences: store.get('preferences') });
     });
     mb.on('show', () => {
       mb.window.webContents.send('data', { data: RobinHoodAPI, preferences: store.get('preferences') });
-      mb.window.openDevTools({ mode: 'undocked' });
+      // mb.window.openDevTools({ mode: 'undocked' });
     });
     mb.on('hide', () => console.log('MenuBar hidden'));
 

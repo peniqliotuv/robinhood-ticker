@@ -31,16 +31,10 @@
         </select>
         <label>View Change By</label>
       </div>
-     <!--  <div class="mui-select">
-        <select id="select-equity">
-          <option value="total-equity">Total Equity</option>
-          <option value="share-price">Individual Share Price</option>
-        </select>
-        <label>View Equity By</label>
-      </div> -->
       <div class="button-container">
         <button type="button" onclick="submit()" class="mui-btn mui-btn--raised">Submit</button>
         <button type="button" onclick="logout()" id="logout" class="mui-btn mui-btn--raised">Logout</button>
+        <button type="button" onclick="quit()" id="quit" class="mui-btn mui-btn--raised">Quit</button>
       </div>
     </div>
 
@@ -61,8 +55,6 @@
 
       ipcRenderer.on('preferences', (event, message) => {
         const { refreshRate, viewChangeBy, viewEquityBy } = message;
-        console.log(message);
-        // document.getElementById('loader').style.display = "none";
         document.getElementById('preferences-form').style.visibility = "visible";
         for (let i = 0; i < selectRefresh.options.length; ++i) {
           if (selectRefresh.options[i].value == refreshRate) {
@@ -76,24 +68,21 @@
             break;
           }
         }
-        // for (let i = 0; i < selectEquity.options.length; ++i) {
-        //   if (selectEquity.options[i].value === viewEquityBy) {
-        //     selectEquity.selectedIndex = i;
-        //     break;
-        //   }
-        // }
       });
 
       function submit() {
         const refreshRate = selectRefresh.value;
         const viewChangeBy = selectChange.value;
-        // const viewEquityBy = selectEquity.value;
         ipcRenderer.send('preferences-saved', { refreshRate, viewChangeBy });
         window.close();
       }
 
       function logout() {
         ipcRenderer.send('logout', true);
+      }
+
+      function quit() {
+        ipcRenderer.send('app-quit', true);
       }
 
       // You can also require other files to run in this process

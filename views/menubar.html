@@ -55,8 +55,7 @@
       function isAfterHours() {
         const EST = moment().tz('America/New_York');
         const hours = EST.hours();
-        const minutes = EST.minutes();
-        if (hours < 15 || hours === 14 && minutes <= 29) {
+        if (hours < 16) {
           return false;
         }
         return true;
@@ -102,7 +101,9 @@
             afterHoursEquityDifference = `${afterHoursSign}$${Math.abs(afterHoursEquityDifference.toFixed(2))}`;
           }
         }
-        return { equity, equityDifference, afterHoursEquityDifference };
+        const didProfit = sign === '+';
+
+        return { equity, equityDifference, afterHoursEquityDifference, didProfit };
       }
 
       /*
@@ -116,16 +117,23 @@
         data = message.data;
         preferences = message.preferences;
 
-        console.log(data, preferences);
+        // console.log(data, preferences);
         const loader = document.getElementById('loader');
         loader.style.display = 'none';
         // loader.parentNode.removeChild(loader);
 
-        const { equity, equityDifference, afterHoursEquityDifference } = calculateEquity();
+        const { equity, equityDifference, afterHoursEquityDifference, didProfit } = calculateEquity();
         equityContainer.innerHTML = equity;
         profitContainer.innerHTML = `${equityDifference} ${moment().format('MMM DD, YYYY')}`;
         if (afterHoursEquityDifference) {
           afterHoursProfitContainer.innerHTML = `${afterHoursEquityDifference} After Hours`;
+        }
+
+        /* If there was an overall loss, change the background color to red. */
+        if (!didProfit) {
+          document.body.classList.add('equity-loss');
+        } else {
+          document.body.className = '';
         }
 
         /* Delete Child nodes from positions container. */
@@ -148,9 +156,7 @@
 
           const el = document.createElement('div');
           el.className = 'stock';
-          el.onclick = () => {
-            ipcRenderer.send('show-stock-info', data.symbol);
-          }
+
 
           const symbolContainer = document.createElement('div');
           symbolContainer.className = 'symbol-container';
@@ -167,7 +173,18 @@
 
           const differenceContainer = document.createElement('div');
           differenceContainer.className = 'difference-container';
+
+          if (difference[0] !== '+') {
+            differenceContainer.classList.add('equity-loss');
+          }
           differenceContainer.innerHTML = difference;
+
+          el.onclick = () => {
+            ipcRenderer.send('show-stock-info', {
+              symbol: data.symbol,
+              color: difference[0] === '+' ? '#50A885' : '#E35F3E',
+            });
+          }
 
           el.appendChild(symbolContainer);
           el.appendChild(differenceContainer);

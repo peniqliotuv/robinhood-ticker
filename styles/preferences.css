@@ -17,6 +17,11 @@ body {
     font-weight: 100;
     user-select: none;
     background-color:  #61CA9D;
+    -webkit-app-region: drag;
+}
+/* Needed so button is not draggable */
+button {
+  -webkit-app-region: no-drag;
 }
 
 input {
@@ -28,7 +33,7 @@ input {
     display: flex;
     justify-content: center;
     width: 100%;
-    margin-top: 65px;
+    margin-top: 50px;
     align-items: center;
     flex-direction: column
 }
@@ -42,12 +47,20 @@ input {
     width: 240px;
     margin-left: 0!important;
     color:  white!important;
+    background-color:  #61CA9D!important;
+}
+
+.mui-btn:hover {
     background-color:  #50A885!important;
 }
 
 /* UGH */
-#logout {
-  background-color: #E35F3E!important;
+#logout, #quit {
+    background-color: #E35F3E!important;
+}
+
+#logout:hover, #quit:hover {
+    background-color: #CC5537!important;
 }
 
 .mui-btn:active {
@@ -81,7 +94,7 @@ input {
     height: 415px;
     background-color: #212025;
     width: 100vw;
-    border-radius: 2px;
-    top: 75px;
+    border-radius: 0 0 2px 2px;
+    top: 60px;
     z-index: -1
 }

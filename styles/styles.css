@@ -17,6 +17,11 @@ body {
     letter-spacing: 0.1em;
     font-weight: 100;
     user-select: none;
+    -webkit-app-region: drag;
+}
+
+button {
+    -webkit-app-region: no-drag;
 }
 
 input {

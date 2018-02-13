@@ -10,6 +10,12 @@
 
 body {
     font-family: 'Din-Light', sans-serif!important;
+    -webkit-app-region: drag;
+}
+
+/* Needed so button is not draggable */
+button {
+  -webkit-app-region: no-drag;
 }
 
 .container {

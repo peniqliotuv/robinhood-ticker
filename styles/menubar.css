@@ -16,6 +16,10 @@ body {
     background-color:  #61CA9D;
 }
 
+body.equity-loss {
+    background-color: #E35F3E;
+}
+
 .container {
     width: 100%;
     display: flex;
@@ -90,6 +94,10 @@ body {
 .stock > .difference-container {
     opacity: 1;
     transition: opacity 0.25s;
+}
+
+.stock > .difference-container.equity-loss {
+    color:  #E35F3E;
 }
 
 .blur > .symbol-container > div,

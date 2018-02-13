@@ -34,12 +34,14 @@
 
       const ctx = document.getElementById('stock-chart');
 
-      ipcRenderer.on('data', (e, symbol) => {
+      ipcRenderer.on('data', (e, data) => {
+        const loader = document.getElementById('loader');
+        const { symbol, color } = data;
+        console.log(symbol, color);
+        loader.style.color = color;
         stockAPI.getSMA(symbol)
           .then(data => {
             const transformed = Object.entries(data).map(entry => ({ x: new Date(entry[0]).toLocaleString(), y: entry[1].SMA }));
-            // stockInfoWindow.webContents.send('data', { data: transformedData, symbol });
-            const loader = document.getElementById('loader');
             loader.parentNode.removeChild(loader);
             ctx.style.visibility = 'visible';
 
@@ -49,8 +51,8 @@
                 datasets: [{
                   label: 'SMA',
                   data: transformed,
-                  borderColor: '#50A885',
-                  pointBackgroundColor: '#529B80',
+                  borderColor: color,
+                  pointBackgroundColor: color,
                   pointStyle: 'circle',
                 }],
               },
@@ -61,7 +63,7 @@
                   text: `Simple Moving Average for ${symbol}`,
                   fontSize: 24,
                   fontStyle: 'normal',
-                  fontColor: '#50A885',
+                  fontColor: color,
                 },
                 tooltips: {
                   titleFontFamily: 'Din-Light',
@@ -121,7 +123,7 @@
               }
             });
           })
-          .catch(err => console.err(err));
+          .catch(err => console.error(err));
       });
 
 
