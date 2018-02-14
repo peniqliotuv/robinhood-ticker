@@ -1,6 +1,6 @@
 {
   "name": "RH-Ticker",
-  "version": "1.3.0",
+  "version": "2.0.0",
   "license": "MIT",
   "description": "Robinhood Ticker",
   "repository": "https://github.com/peniqliotuv/robinhood-ticker",
@@ -9,8 +9,8 @@
     "start": "NODE_ENV=development electron .",
     "debug": "NODE_ENV=development electron --inspect=5858 .",
     "pack": "electron-builder --dir",
-    "dist": "electron-builder",
-    "publish": "build -p always"
+    "dist": "NODE_ENV=production electron-builder",
+    "publish": "NODE_ENV=production build -p always"
   },
   "keywords": [
     "Electron",

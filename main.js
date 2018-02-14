@@ -10,10 +10,9 @@ const {
 const fetch = require('node-fetch');
 const path = require('path');
 const url = require('url');
-const { autoUpdater } = require('electron-updater');
 const openAboutWindow = require('about-window').default;
 const menubar = require('menubar');
-
+const { appUpdater } = require('./app-updater');
 const Store = require('electron-store');
 const store = new Store();
 
@@ -57,7 +56,6 @@ ipcMain.on('data', (event, arg) => {
       index: `file://${__dirname}/views/menubar.html`,
       width: 250,
       height: 500,
-      alwaysOnTop: true,
       tray,
     });
     mb.window.webContents.on('did-finish-load', () => {
@@ -122,6 +120,19 @@ ipcMain.on('manual-refresh', async (event, arg) => {
 
 ipcMain.on('app-quit', (event, arg) => {
   app.quit();
+});
+
+ipcMain.on('show-about', (event, arg) => {
+
+  console.log('show about');
+
+  openAboutWindow({
+    icon_path: ICON_LOGO_LARGE,
+    copyright: 'Copyright (c) 2018 Jerry Tsui',
+    package_json_dir: __dirname,
+    description: 'www.github.com/peniqliotuv',
+  });
+
 });
 
 const startRefresh = () => {
@@ -266,7 +277,7 @@ const createPreferencesWindow = () => {
   }
 
   preferences = new BrowserWindow({
-    height: 400,
+    height: 475,
     width: 300,
     resizable: false,
     backgroundColor: '#212025',
@@ -353,10 +364,10 @@ const initializeApp = () => {
     win = null;
   });
 
+
   tray = new Tray(ICON_LOGO);
 
   let contextMenu;
-  console.log(store.store);
   if (isAuthenticated()) {
     console.log('authenticated')
     RobinHoodAPI = store.get('data');
@@ -382,6 +393,13 @@ const initializeApp = () => {
       // mb.window.openDevTools({ mode: 'undocked' });
     });
     mb.on('hide', () => console.log('MenuBar hidden'));
+    mb.window.webContents.once('did-frame-finish-load', () => {
+      /* Check for auto updates */
+      console.log('did frame finish load')
+      if (process.platform === 'darwin') {
+        appUpdater();
+      }
+    });
 
     refresh = startRefresh();
   } else {
@@ -422,25 +440,6 @@ app.on('activate', () => {
   if (win === null) {
     initializeApp();
   }
-});
-
-autoUpdater.on ('update-available', () => {
-  dialog.showMessageBox({
-    type: 'info',
-    title: 'Update Available!',
-    buttons: ['Download'],
-    icon: ICON_LOGO_LARGE,
-  }, (response, checkboxChecked) => {
-    console.log(response);
-  });
-});
-
-autoUpdater.on('update-downloaded', () => {
-  dialog.showMessageBox({
-    type: 'info',
-    title: 'Update Successfully downloaded!',
-    icon: ICON_LOGO_LARGE,
-  });
 });
 
 // Necessary to authenticating requests

@@ -33,6 +33,7 @@
       </div>
       <div class="button-container">
         <button type="button" onclick="submit()" class="mui-btn mui-btn--raised">Submit</button>
+        <button type="button" onclick="about()" class="mui-btn mui-btn--raised">About RH Ticker</button>
         <button type="button" onclick="logout()" id="logout" class="mui-btn mui-btn--raised">Logout</button>
         <button type="button" onclick="quit()" id="quit" class="mui-btn mui-btn--raised">Quit</button>
       </div>
@@ -83,6 +84,10 @@
 
       function quit() {
         ipcRenderer.send('app-quit', true);
+      }
+
+      function about() {
+        ipcRenderer.send('show-about', true);
       }
 
       // You can also require other files to run in this process
