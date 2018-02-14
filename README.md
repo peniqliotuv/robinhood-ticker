@@ -22,6 +22,7 @@ Authenticating with Robinhood
 <p align="center"><img src="https://puu.sh/znHko/63dd942490.png" height="350px"/></p>
 Viewing Historical Stock Prices
 <p align="center"><img src="https://i.imgur.com/RTtOxZi.png" height="450px"/></p>
+
 ## Releases
 MacOS only currently
 https://github.com/peniqliotuv/robinhood-ticker/releases
