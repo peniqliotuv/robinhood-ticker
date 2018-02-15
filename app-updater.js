@@ -8,6 +8,9 @@ const platform = os.platform() + '_' + os.arch();  // usually returns darwin_64
 const updaterFeedURL = `https://rh-ticker-deploy-server.herokuapp.com/update/${platform}/${version}`;
 
 function appUpdater() {
+  if (process.env.NODE_ENV === 'development') {
+    return;
+  }
 
   log.error('Starting app update! ' + updaterFeedURL);
   autoUpdater.setFeedURL(updaterFeedURL);

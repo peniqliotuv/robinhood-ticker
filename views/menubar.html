@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html>
   <head>
-
     <meta charset="UTF-8">
     <title>Menu Bar</title>
     <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet">
@@ -10,7 +9,6 @@
     <link rel="stylesheet" href="../styles/menubar.css" />
   </head>
   <body>
-
     <div id="backdrop"></div>
     <div class="container">
       <div id="loader" style="color: #529B80; position: absolute;" class="la-line-scale-pulse-out la-3x">
@@ -38,8 +36,6 @@
       </div>
     </div>
 
-
-
     <script>
       const { remote, ipcRenderer } = require('electron');
       const moment = require('moment-timezone');
@@ -65,16 +61,19 @@
         ipcRenderer.send('open-preferences', true);
       }
 
-      /* Triggers a manual refresh */
-      function refresh() {
+      function blurMenu() {
         loader.style.display = 'block';
         document.getElementById('reload').children[0].classList.add('reloading')
         positionsContainer.childNodes.forEach((el) => {
           el.classList.add('blur');
         });
+      }
+
+      /* Triggers a manual refresh */
+      function refresh() {
+        blurMenu();
         ipcRenderer.send('manual-refresh', true);
         /* BLUR OUT ALL OF THE OTHER STOCK THINGS */
-
       }
 
       /* Code to calculate the equity of a user's RH profile.
@@ -107,6 +106,7 @@
         return { equity, equityDifference, afterHoursEquityDifference, didProfit };
       }
 
+
       /*
         Note to anyone who might be reading this:
         If you want to start working on a project and think
@@ -130,6 +130,8 @@
         profitContainer.innerHTML = `${equityDifference} ${moment().format('MMM DD, YYYY')}`;
         if (afterHoursEquityDifference) {
           afterHoursProfitContainer.innerHTML = `${afterHoursEquityDifference} After Hours`;
+        } else {
+          afterHoursProfitContainer.innerHTML = '';
         }
 
         /* If there was an overall loss, change the background color to red. */
@@ -195,6 +197,9 @@
         });
         positionsContainer.appendChild(fragment);
       });
+
+      /* Blur the UI when command+r is pressed */
+      ipcRenderer.on('command-r', () => blurMenu());
 
       require('../renderer.js');
     </script>

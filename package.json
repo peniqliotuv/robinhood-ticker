@@ -1,6 +1,6 @@
 {
   "name": "RH-Ticker",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "license": "MIT",
   "description": "Robinhood Ticker",
   "repository": "https://github.com/peniqliotuv/robinhood-ticker",
@@ -8,7 +8,7 @@
   "scripts": {
     "start": "NODE_ENV=development electron .",
     "debug": "NODE_ENV=development electron --inspect=5858 .",
-    "pack": "electron-builder --dir",
+    "pack": "NODE_ENV=production electron-builder --dir",
     "dist": "NODE_ENV=production electron-builder",
     "publish": "NODE_ENV=production build -p always"
   },
@@ -42,8 +42,6 @@
     "electron-log": "^2.2.14",
     "electron-store": "^1.3.0",
     "electron-updater": "^2.20.1",
-    "hammerjs": "^2.0.8",
-    "jquery": "^3.3.1",
     "menubar": "^5.2.3",
     "moment-timezone": "^0.5.14",
     "node-fetch": "^1.7.3",
