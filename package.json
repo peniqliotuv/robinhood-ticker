@@ -1,6 +1,6 @@
 {
   "name": "RH-Ticker",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "license": "MIT",
   "description": "Robinhood Ticker",
   "repository": "https://github.com/peniqliotuv/robinhood-ticker",
@@ -22,6 +22,10 @@
     "mac": {
       "category": "public.app-category.utilities",
       "icon": "build/icon-512.png"
+    },
+    "win": {
+      "target": "squirrel",
+      "icon": "build/logo.ico"
     },
     "dmg": {
       "backgroundColor": "#61CA9D"
