@@ -24,8 +24,12 @@
       "icon": "build/icon-512.png"
     },
     "win": {
-      "target": "squirrel",
-      "icon": "build/logo.ico"
+      "icon": "build/logo.ico",
+      "target": "nsis"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowElevation": false
     },
     "dmg": {
       "backgroundColor": "#61CA9D"
@@ -35,6 +39,7 @@
     "devtron": "^1.4.0",
     "electron": "~1.7.8",
     "electron-builder": "^19.55.2",
+    "electron-builder-squirrel-windows": "^20.2.0",
     "electron-debug": "^1.5.0",
     "electron-reload": "^1.2.2",
     "nodemon": "^1.14.11"
