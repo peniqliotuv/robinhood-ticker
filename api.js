@@ -7,31 +7,23 @@ class RobinHoodAPI {
       this._positions = [];
       this._portfolio = {};
       RobinHoodAPI.instance = this;
-      console.log('Creating Instance')
-    } else {
-      console.log('Returning Instance')
     }
-    console.log('Constructor called');
     return RobinHoodAPI.instance;
   }
 
   get token() {
-    console.log(`getter: ${this._token}`)
     return this._token;
   }
 
   set token(newToken) {
-    console.log('Calling setter');
     this._token = newToken;
   }
 
   get accountNumber() {
-    console.log(`getting: ${this._accountNumber}`);
     return this._accountNumber;
   }
 
   set accountNumber(number) {
-    console.log(`Setting accountNumber: ${number}`);
     this._accountNumber = number;
   }
 
@@ -74,7 +66,6 @@ class RobinHoodAPI {
   }
 
   async refresh() {
-    console.log('Calling refresh in robinhood API');
     this.positions = this.getPositions();
     this.portfolio = this.getPortfolio();
   }
@@ -134,7 +125,6 @@ class RobinHoodAPI {
         body: JSON.stringify({ username, password, mfa_code }),
       });
       const json = await res.json();
-      console.log(json);
       if (res.ok) {
         return {
           success: true,
