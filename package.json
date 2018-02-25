@@ -1,6 +1,6 @@
 {
   "name": "RH-Ticker",
-  "version": "2.2.0",
+  "version": "2.1.0",
   "license": "MIT",
   "description": "Robinhood Ticker",
   "repository": "https://github.com/peniqliotuv/robinhood-ticker",
@@ -21,18 +21,8 @@
     "appId": "robinhoodticker",
     "mac": {
       "category": "public.app-category.utilities",
-      "icon": "build/icon-512.png"
-    },
-    "win": {
-      "icon": "build/logo.ico",
-      "target": "nsis"
-    },
-    "nsis": {
-      "oneClick": false,
-      "allowElevation": false
-    },
-    "dmg": {
-      "backgroundColor": "#61CA9D"
+      "icon": "build/icon-512.png",
+      "background": "build/background.png",
     }
   },
   "devDependencies": {
@@ -46,6 +36,7 @@
   },
   "dependencies": {
     "about-window": "^1.9.1",
+    "auto-launch": "^5.0.5",
     "chart.js": "^2.7.1",
     "chartjs-plugin-zoom": "^0.6.3",
     "electron-log": "^2.2.14",

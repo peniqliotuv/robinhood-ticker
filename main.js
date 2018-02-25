@@ -8,7 +8,7 @@ const {
   dialog,
   globalShortcut,
 } = require('electron');
-
+const AutoLaunch = require('auto-launch');
 const fetch = require('node-fetch');
 const path = require('path');
 const url = require('url');
@@ -338,7 +338,16 @@ const isAuthenticated = () => store.get('data') ? true : false;
 
 const initializeApp = () => {
   app.dock.hide();
-  app.setLoginItemSettings({ openAtLogin: true });
+
+  const autoLaunch = new AutoLaunch({
+    name: 'RH-Ticker',
+    path: '/Applications/RH-Ticker.app',
+    isHidden: true,
+  });
+  autoLaunch.isEnabled().then((isEnabled) => {
+    if (!isEnabled) autoLaunch.enable();
+  });
+
   // Necessary to prevent CORS since Electron sends things with an origin of file://
   session.defaultSession.webRequest.onBeforeSendHeaders((details, callback) => {
     details.requestHeaders['Origin'] = 'electron://robinhood-app';
