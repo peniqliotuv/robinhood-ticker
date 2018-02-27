@@ -22,7 +22,10 @@
     "mac": {
       "category": "public.app-category.utilities",
       "icon": "build/icon-512.png",
-      "background": "build/background.png",
+      "target": "dmg"
+    },
+    "dmg": {
+      "background": "build/background.png"
     }
   },
   "devDependencies": {

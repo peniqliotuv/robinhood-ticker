@@ -6,7 +6,7 @@ const {
   session,
   ipcMain,
   dialog,
-  globalShortcut,
+  // globalShortcut,
 } = require('electron');
 const AutoLaunch = require('auto-launch');
 const fetch = require('node-fetch');
@@ -425,16 +425,16 @@ const initializeApp = () => {
     tray = null;
   });
 
-  globalShortcut.register('Command+R', async () => {
-    mb.window.webContents.send('command-r');
-    try {
-      await refreshAccountData(RobinHoodAPI._accountNumber);
-      mb.window.webContents.send('data', { data: RobinHoodAPI, preferences: store.get('preferences') });
-    } catch (e) {
-      console.error(e);
-      console.error(e.stack);
-    }
-  });
+  // globalShortcut.register('Command+R', async () => {
+  //   mb.window.webContents.send('command-r');
+  //   try {
+  //     await refreshAccountData(RobinHoodAPI._accountNumber);
+  //     mb.window.webContents.send('data', { data: RobinHoodAPI, preferences: store.get('preferences') });
+  //   } catch (e) {
+  //     console.error(e);
+  //     console.error(e.stack);
+  //   }
+  // });
 };
 
 // This method will be called when Electron has finished
