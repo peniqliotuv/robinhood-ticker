@@ -392,7 +392,7 @@ const initializeApp = () => {
       index: `file://${__dirname}/views/menubar.html`,
       width: 250,
       height: 500,
-      // alwaysOnTop: true,
+      alwaysOnTop: true,
       tray,
     });
 
@@ -402,7 +402,7 @@ const initializeApp = () => {
     });
     mb.on('show', () => {
       mb.window.webContents.send('data', { data: RobinHoodAPI, preferences: store.get('preferences') });
-      // mb.window.openDevTools({ mode: 'undocked' });
+      mb.window.openDevTools({ mode: 'undocked' });
     });
     mb.on('hide', () => console.log('MenuBar hidden'));
     mb.window.webContents.once('did-frame-finish-load', () => {

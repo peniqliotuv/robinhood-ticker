@@ -48,6 +48,69 @@
       let data = null;
       let preferences = null;
 
+      /* Draggable Code */
+      let dragObj = null;
+      let positionsElements = null;
+      // let placeholder.
+      const placeholder = document.createElement('div');
+      function draggable(obj) {
+        obj.onmousedown = function(){
+          dragObj = obj;
+          /* Create Placeholder object */
+
+          dragObj.style.position = 'absolute';
+          const width = positionsContainer.offsetWidth;
+          const height = positionsContainer.offsetHeight;
+
+          placeholder.style.width = `${dragObj.offsetWidth}px`;
+          placeholder.style.height = `${dragObj.offsetHeight}px`;
+          placeholder.className = 'stock-container placeholder';
+
+          dragObj.insertAdjacentElement('beforebegin', placeholder);
+
+          dragObj.style.width = `${width}px`;
+          dragObj.style.background = '#212025';
+          const oldTop = dragObj.offsetTop;
+          dragObj.style.top = `${oldTop - dragObj.offsetHeight}px`;
+          console.log(oldTop);
+          // console.log(dragObj.style.top);
+          // const top = dragObj.style.top;
+          // console.log('Top is: ' + top);
+        }
+      }
+
+      document.onmouseup = function(e){
+        dragObj.style.background = '#303032';
+        dragObj = null;
+      };
+
+      document.onmousemove = function(e){
+        if (dragObj == null) {
+          return;
+        }
+        // console.log(dragObj.style.top, e.pageY);
+        const y = e.pageY;
+        dragObj.style.top= `${y}px`;
+
+        const { top, bottom, height } = dragObj.getBoundingClientRect();
+        // console.log('dragobj top: ' + top);
+
+        positionsElements = positionsContainer.childNodes;
+        /* If the dragged object collides with another object, then we swap it with the placeholder */
+        positionsElements.forEach((el) => {
+          const rect = el.getBoundingClientRect();
+          if (Math.abs(top - rect.top) <= height && !el.className.includes('placeholder') && el !== dragObj) {
+            const dy1 = top - rect.bottom;
+            const dy2 = rect.top - bottom;
+            if (Math.abs(dy1) >= (height / 2) && Math.abs(dy1) < height) {
+              console.log(`Intersected with ${el.innerHTML} from the bottom!`);
+            } else if (Math.abs(dy2) >= (height / 2) && Math.abs(dy2) < height) {
+              console.log(`Intersected with ${el.innerHTML} from the top!`);
+            }
+          }
+        });
+      };
+
       function isAfterHours() {
         const EST = moment().tz('America/New_York');
         const hours = EST.hours();
@@ -159,6 +222,9 @@
             difference = `${sign}$${Math.abs(difference.toFixed(2))}`;
           }
 
+          const container = document.createElement('div');
+          container.className = 'stock-container';
+
           const el = document.createElement('div');
           el.className = 'stock';
 
@@ -184,16 +250,19 @@
           }
           differenceContainer.innerHTML = difference;
 
-          el.onclick = () => {
-            ipcRenderer.send('show-stock-info', {
-              symbol: data.symbol,
-              color: difference[0] === '+' ? '#50A885' : '#E35F3E',
-            });
-          }
+          // el.onclick = () => {
+          //   ipcRenderer.send('show-stock-info', {
+          //     symbol: data.symbol,
+          //     color: difference[0] === '+' ? '#50A885' : '#E35F3E',
+          //   });
+          // }
 
           el.appendChild(symbolContainer);
           el.appendChild(differenceContainer);
-          fragment.append(el);
+          container.appendChild(el);
+          draggable(container);
+
+          fragment.append(container);
         });
         positionsContainer.appendChild(fragment);
       });
