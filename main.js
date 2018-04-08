@@ -398,7 +398,6 @@ const initializeApp = () => {
       tray,
       webPreferences: { experimentalFeatures: true },
     });
-    console.log(mb.window.webPreferences);
     mb.tray.setTitle(`$${equity}`);
     mb.window.webContents.on('did-finish-load', () => {
       mb.window.webContents.send('data', { data: RobinHoodAPI, preferences: store.get('preferences') });

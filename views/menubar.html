@@ -47,14 +47,13 @@
 
       let data = null;
       let preferences = null;
-
       /* Draggable Code */
       let dragObj = null;
       let positionsElements = null;
-      // let placeholder.
       const placeholder = document.createElement('div');
+
       function draggable(obj) {
-        obj.onmousedown = function(){
+        obj.onmousedown = function() {
           dragObj = obj;
           /* Create Placeholder object */
 
@@ -72,14 +71,27 @@
           dragObj.style.background = '#212025';
           const oldTop = dragObj.offsetTop;
           dragObj.style.top = `${oldTop - dragObj.offsetHeight}px`;
-          console.log(oldTop);
-          // console.log(dragObj.style.top);
-          // const top = dragObj.style.top;
-          // console.log('Top is: ' + top);
         }
       }
 
-      document.onmouseup = function(e){
+      document.onmouseup = function(e) {
+        positionsElements.sort((a, b) => {
+          const rect1 = a.el.getBoundingClientRect();
+          const rect2 = b.el.getBoundingClientRect();
+          return rect1.top < rect2.top ? -1 : 1;
+        });
+        const ordering = positionsElements
+          .filter((node) => !node.el.className.includes('placeholder'))
+          .map((node) => node.el.children[0].children[0].children[0].innerHTML);
+        console.log(ordering);
+        const sortedPositions = new Array(data._positions.length);
+        data._positions.forEach((position) => {
+          const index = ordering.indexOf(position.symbol);
+          sortedPositions[index] = position;
+        })
+        data._positions = sortedPositions;
+        renderDOMElements();
+
         dragObj.style.background = '#303032';
         dragObj = null;
         positionsElements = null;
@@ -262,7 +274,10 @@
           document.body.className = '';
         }
 
-        /* Delete Child nodes from positions container. */
+        renderDOMElements();
+      });
+
+      function renderDOMElements() {
         while (positionsContainer.hasChildNodes()) {
           positionsContainer.removeChild(positionsContainer.lastChild);
         }
@@ -323,10 +338,7 @@
           fragment.append(container);
         });
         positionsContainer.appendChild(fragment);
-      });
-
-      // /* Blur the UI when command+r is pressed */
-      // ipcRenderer.on('command-r', () => blurMenu());
+      }
 
       require('../renderer.js');
     </script>
