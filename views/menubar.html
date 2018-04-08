@@ -82,32 +82,90 @@
       document.onmouseup = function(e){
         dragObj.style.background = '#303032';
         dragObj = null;
+        positionsElements = null;
       };
+
+      function animate(el, height) {
+        const animation = el.animate([
+          {
+            transform: `translateY(${height}px)`
+          }
+        ], {
+          duration: 50,
+          fill: 'forwards',
+          easing: 'ease-in',
+        });
+        animation.direction = height >= 0 ? 'down' : 'up';
+        return animation;
+      }
 
       document.onmousemove = function(e){
         if (dragObj == null) {
           return;
         }
-        // console.log(dragObj.style.top, e.pageY);
         const y = e.pageY;
         dragObj.style.top= `${y}px`;
 
         const { top, bottom, height } = dragObj.getBoundingClientRect();
-        // console.log('dragobj top: ' + top);
+        if (!positionsElements) {
+          positionsElements = Array.from(positionsContainer.childNodes).map(el => {
+            return { el, animation: null };
+          });
+        }
 
-        positionsElements = positionsContainer.childNodes;
         /* If the dragged object collides with another object, then we swap it with the placeholder */
-        positionsElements.forEach((el) => {
+        positionsElements.forEach((node) => {
+          const { el } = node;
           const rect = el.getBoundingClientRect();
           if (Math.abs(top - rect.top) <= height && !el.className.includes('placeholder') && el !== dragObj) {
             const dy1 = top - rect.bottom;
             const dy2 = rect.top - bottom;
             if (Math.abs(dy1) >= (height / 2) && Math.abs(dy1) < height) {
-              console.log(`Intersected with ${el.innerHTML} from the bottom!`);
+              /* Need to swap el down*/
+              if (node.animation && node.animation.direction === 'down') {
+                console.log('Intersected node already has an in-progress animation (down). Returning');
+                return;
+              } else if (node.animation && node.animation.direction === 'up') {
+                if (node.animation.playState === 'finished') {
+                  console.log('opposite, up, finished')
+                  node.animation.reverse();
+                  return;
+                } else if (node.animation.playState === 'pending') {
+                  console.log('play', node.animation);
+                  node.animation.play();
+                  return;
+                } else {
+                  console.log(node.animation)
+                  console.log('opposite, up, unfinished')
+                  return;
+                }
+              }
+              node.animation = animate(el, height);
             } else if (Math.abs(dy2) >= (height / 2) && Math.abs(dy2) < height) {
-              console.log(`Intersected with ${el.innerHTML} from the top!`);
+              /* Need to swap el up*/
+              if (node.animation && node.animation.direction === 'up') {
+                console.log('Intersected node already has an in-progress animation (up). Returning');
+                return;
+              } else if (node.animation  && node.animation.direction === 'down') {
+                if (node.animation.playState === 'finished') {
+                  console.log('opposite, down, finished')
+                  node.animation.reverse();
+                  return;
+                } else if (node.animation.playState === 'pending') {
+                  console.log('play', node.animation);
+                  node.animation.play();
+                  return;
+                } else {
+                  console.log('opposite, down, unfinished')
+                  return;
+                }
+              }
+              node.animation = animate(el, -height);
             }
+          } else if (Math.abs(top - rect.top) > height && node.animation) {
+
           }
+          // console.log(node);
         });
       };
 
@@ -267,8 +325,8 @@
         positionsContainer.appendChild(fragment);
       });
 
-      /* Blur the UI when command+r is pressed */
-      ipcRenderer.on('command-r', () => blurMenu());
+      // /* Blur the UI when command+r is pressed */
+      // ipcRenderer.on('command-r', () => blurMenu());
 
       require('../renderer.js');
     </script>
