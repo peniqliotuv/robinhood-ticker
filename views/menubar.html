@@ -45,6 +45,7 @@
       const afterHoursProfitContainer = document.getElementById('after-hours-profit');
       const positionsContainer = document.getElementById('positions');
 
+      let timeoutId = null;
       let data = null;
       let preferences = null;
       /* Draggable Code */
@@ -72,7 +73,8 @@
           dragObj.style.width = `${width}px`;
           dragObj.style.background = '#212025';
           const oldTop = dragObj.offsetTop;
-          dragObj.style.top = `${oldTop - dragObj.offsetHeight}px`;
+          const newTop = oldTop - dragObj.offsetHeight - positionsContainer.scrollTop;
+          dragObj.style.top = `${newTop}px`;
         }
       }
 
@@ -120,23 +122,13 @@
         if (dragObj == null) {
           return;
         }
-
-
         const { top: boundaryTop} = positionsContainer.getBoundingClientRect();
-
         const { top, bottom, height } = dragObj.getBoundingClientRect();
 
-        // if (top < boundaryTop) {
-        //   console.log(dragObj.style.top);
-        //   dragObj.style.top = dragObj.style.top;
-        //   return;
-        // }
-        // console.log(`y grab pos: ${dragObj.yGrabPos}`);
         const y = e.pageY;
         const deltaY = y - dragObj.yGrabPos;
         dragObj.yGrabPos = y;
         if (top + deltaY > boundaryTop) {
-          // e.preventDefault();
           dragObj.style.top= `${top + deltaY}px`;
         }
 
@@ -198,7 +190,6 @@
           } else if (Math.abs(top - rect.top) > height && node.animation) {
 
           }
-          // console.log(node);
         });
       };
 
@@ -271,8 +262,22 @@
       ipcRenderer.on('data', (event, message) => {
         data = message.data;
         preferences = message.preferences;
+        repaintDOM();
+      });
 
-        // console.log(data, preferences);
+      function repaintDOM() {
+        /* If data comes in, we want to delay the DOM repainting until dragObj is null. Otherwise, focus is lost on the dragObj*/
+        if (dragObj !== null) {
+          console.log('DragObj is not null');
+          window.setTimeout(repaintDOM, 100);
+          return;
+        }
+        if (timeoutId !== null) {
+          clearTimeout(timeoutId);
+          timeoutId = null;
+        }
+
+
         const loader = document.getElementById('loader');
         loader.style.display = 'none';
 
@@ -296,7 +301,8 @@
         }
 
         renderDOMElements();
-      });
+      }
+
 
       function renderDOMElements() {
         while (positionsContainer.hasChildNodes()) {
