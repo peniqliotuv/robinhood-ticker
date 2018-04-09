@@ -6,7 +6,6 @@ const {
   session,
   ipcMain,
   dialog,
-  // globalShortcut,
 } = require('electron');
 const AutoLaunch = require('auto-launch');
 const fetch = require('node-fetch');
@@ -176,51 +175,71 @@ const fetchWithAuth = (url, opts) => {
 const refreshAccountData = async (accountNumber) => {
   /* Fetch information about a user's positions*/
   try {
-    let res = await fetchWithAuth(`https://api.robinhood.com/accounts/${accountNumber}/positions/`);
-    let json = await res.json();
-    if (res.ok) {
-      const transformed = await Promise.all(json.results
-        .filter((result) => Number(result.quantity) !== 0)
-        .map(async (result) => {
-          const instrument = await(await fetchWithAuth(decodeURIComponent(result.instrument))).json();
-          const quote = await(await fetchWithAuth(decodeURIComponent(instrument.quote))).json();
-          return {
-            averageBuyPrice: result.average_buy_price,
-            instrument: result.instrument,
-            quantity: Number(result.quantity),
-            quote: quote,
-            currentPrice: quote.last_traded_price,
-            symbol: instrument.symbol,
-            name: instrument.name,
-            instrument: instrument,
-          }
-        }));
-      // console.log(RobinHoodAPI._positions);
-      RobinHoodAPI._positions = transformed;
-    } else {
-      throw new Error('Could not retrieve positions');
-    }
-    /* Fetch information about a user's portfolio*/
-    res = await fetchWithAuth(`https://api.robinhood.com/accounts/${accountNumber}/portfolio/`);
-    json = await res.json();
-    if (res.ok) {
-      RobinHoodAPI._portfolio = json;
-      console.log('Robinhood API Portfolio')
-      console.log(json);
-    } else {
-      console.log(json);
-      throw new Error('Could not retrieve portfolio');
-    }
-
+    console.log('Starting refresh');
+    await Promise.all([
+      refreshPositions(accountNumber),
+      refreshPortfolio(accountNumber),
+      refreshWatchlist(),
+    ]);
+    console.log('End refresh');
     const equity = Number(RobinHoodAPI._portfolio.extended_hours_equity || RobinHoodAPI._portfolio.equity).toFixed(2);
     tray.setTitle(`$${equity}`);
     mb.tray.setTitle(`${equity}`);
   } catch (e) {
     console.error(e);
-    console.log('ERROR NAME');
-    console.log(e.name);
     console.error(e.stack);
-    // throw e;
+  }
+}
+
+const refreshPositions = async (accountNumber) => {
+  const res = await fetchWithAuth(`https://api.robinhood.com/accounts/${accountNumber}/positions/`);
+  const json = await res.json();
+  if (res.ok) {
+    const transformed = await Promise.all(json.results
+      .filter((result) => Number(result.quantity) !== 0)
+      .map(async (result) => {
+        const instrument = await(await fetchWithAuth(decodeURIComponent(result.instrument))).json();
+        const quote = await(await fetchWithAuth(decodeURIComponent(instrument.quote))).json();
+        return {
+          averageBuyPrice: result.average_buy_price,
+          instrument: result.instrument,
+          quantity: Number(result.quantity),
+          quote: quote,
+          currentPrice: quote.last_traded_price,
+          symbol: instrument.symbol,
+          name: instrument.name,
+          instrument: instrument,
+        }
+      }));
+    RobinHoodAPI._positions = transformed;
+  } else {
+    throw new Error('Could not retrieve positions');
+  }
+}
+
+const refreshPortfolio = async (accountNumber) => {
+  const res = await fetchWithAuth(`https://api.robinhood.com/accounts/${accountNumber}/portfolio/`);
+  const json = await res.json();
+  if (res.ok) {
+    RobinHoodAPI._portfolio = json;
+  } else {
+    throw new Error('Could not retrieve portfolio');
+  }
+}
+
+const refreshWatchlist = async () => {
+  console.log('Starting refresh watchlist!');
+  try {
+    const res = await fetchWithAuth('https://api.robinhood.com/watchlists/Default/');
+    const json = await res.json();
+    if (res.ok) {
+      const instruments = await Promise.all(json.results.map(async (result) => {
+        return await(await fetchWithAuth(decodeURIComponent(result.instrument))).json();
+      }));
+      RobinHoodAPI._watchlist = instruments;
+    }
+  } catch (e) {
+    console.error(e.stack, e);
   }
 }
 
@@ -253,7 +272,7 @@ const createLoginMenu = () => {
           protocol: 'file:',
           slashes: true,
         }));
-        // win.webContents.openDevTools({ mode: 'detach' });
+        win.webContents.openDevTools({ mode: 'detach' });
         win.on('close', () => {
           win = null;
         });

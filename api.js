@@ -6,6 +6,7 @@ class RobinHoodAPI {
       this._accountNumber = '';
       this._positions = [];
       this._portfolio = {};
+      this._watchlist = [];
       RobinHoodAPI.instance = this;
     }
     return RobinHoodAPI.instance;
@@ -39,6 +40,14 @@ class RobinHoodAPI {
     return this._portfolio;
   }
 
+  get watchlist() {
+    return this._watchlist;
+  }
+
+  set watchlist(watchlist) {
+    this._watchlist = watchlist;
+  }
+
   set portfolio(portfolio) {
     this._portfolio = portfolio;
   }
@@ -63,11 +72,6 @@ class RobinHoodAPI {
     } else {
       return accountNumber;
     }
-  }
-
-  async refresh() {
-    this.positions = this.getPositions();
-    this.portfolio = this.getPortfolio();
   }
 
   async getPositions() {
@@ -114,6 +118,20 @@ class RobinHoodAPI {
     } catch (e) {
       console.log(e);
       throw e;
+    }
+  }
+
+  async getWatchlist() {
+    try {
+      const res = await fetch('https://api.robinhood.com/watchlists/Default/');
+      const json = await res.json();
+      if (res.ok) {
+        return await Promise.all(json.results.map(async (result) => {
+          return await(await fetch(decodeURIComponent(result.instrument))).json();
+        }));
+      }
+    } catch (e) {
+      console.error(e.stack, e);
     }
   }
 

@@ -261,6 +261,7 @@
       */
       ipcRenderer.on('data', (event, message) => {
         data = message.data;
+        console.log(data);
         preferences = message.preferences;
         repaintDOM();
       });

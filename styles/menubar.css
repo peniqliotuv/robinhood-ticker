@@ -104,13 +104,14 @@ body.equity-loss {
     color:  #E35F3E;
 }
 
-.blur > .symbol-container > div,
-.blur > .symbol-container > p,
-.blur > .difference-container {
+.blur .symbol-container > div,
+.blur .symbol-container > p,
+.blur .difference-container {
     opacity: 0;
 }
 
-.blur:hover {
+
+.blur .stock:hover {
     cursor: default;
     background-color: initial;
 }
