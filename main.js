@@ -233,9 +233,11 @@ const refreshWatchlist = async () => {
     const res = await fetchWithAuth('https://api.robinhood.com/watchlists/Default/');
     const json = await res.json();
     if (res.ok) {
-      const instruments = await Promise.all(json.results.map(async (result) => {
-        return await(await fetchWithAuth(decodeURIComponent(result.instrument))).json();
-      }));
+      const instruments = await Promise.all(json.results
+        .map(async (result) => {
+          const instrument = await(await fetchWithAuth(decodeURIComponent(result.instrument))).json();
+          return await(await fetchWithAuth(decodeURIComponent(instrument.quote))).json();
+        }));
       RobinHoodAPI._watchlist = instruments;
     }
   } catch (e) {
@@ -272,7 +274,7 @@ const createLoginMenu = () => {
           protocol: 'file:',
           slashes: true,
         }));
-        win.webContents.openDevTools({ mode: 'detach' });
+        // win.webContents.openDevTools({ mode: 'detach' });
         win.on('close', () => {
           win = null;
         });
@@ -423,7 +425,9 @@ const initializeApp = () => {
     });
     mb.on('show', () => {
       mb.window.webContents.send('data', { data: RobinHoodAPI, preferences: store.get('preferences') });
-      mb.window.openDevTools({ mode: 'undocked' });
+      if (process.env.NODE_ENV === 'development') {
+        mb.window.openDevTools({ mode: 'undocked' });
+      }
     });
     mb.on('hide', () => console.log('MenuBar hidden'));
     mb.window.webContents.once('did-frame-finish-load', () => {

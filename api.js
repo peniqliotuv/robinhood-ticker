@@ -127,7 +127,8 @@ class RobinHoodAPI {
       const json = await res.json();
       if (res.ok) {
         return await Promise.all(json.results.map(async (result) => {
-          return await(await fetch(decodeURIComponent(result.instrument))).json();
+          const instrument = await(await fetch(decodeURIComponent(result.instrument))).json();
+          return await(await fetch(decodeURIComponent(instrument.quote))).json();
         }));
       }
     } catch (e) {
