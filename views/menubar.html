@@ -53,8 +53,10 @@
       const placeholder = document.createElement('div');
 
       function draggable(obj) {
-        obj.onmousedown = function() {
+        obj.onmousedown = function(e) {
           dragObj = obj;
+          dragObj.yGrabPos = e.pageY;
+
           /* Create Placeholder object */
 
           dragObj.style.position = 'absolute';
@@ -75,6 +77,9 @@
       }
 
       document.onmouseup = function(e) {
+        if (!positionsElements) {
+          return;
+        }
         positionsElements.sort((a, b) => {
           const rect1 = a.el.getBoundingClientRect();
           const rect2 = b.el.getBoundingClientRect();
@@ -115,10 +120,26 @@
         if (dragObj == null) {
           return;
         }
-        const y = e.pageY;
-        dragObj.style.top= `${y}px`;
+
+
+        const { top: boundaryTop} = positionsContainer.getBoundingClientRect();
 
         const { top, bottom, height } = dragObj.getBoundingClientRect();
+
+        // if (top < boundaryTop) {
+        //   console.log(dragObj.style.top);
+        //   dragObj.style.top = dragObj.style.top;
+        //   return;
+        // }
+        // console.log(`y grab pos: ${dragObj.yGrabPos}`);
+        const y = e.pageY;
+        const deltaY = y - dragObj.yGrabPos;
+        dragObj.yGrabPos = y;
+        if (top + deltaY > boundaryTop) {
+          // e.preventDefault();
+          dragObj.style.top= `${top + deltaY}px`;
+        }
+
         if (!positionsElements) {
           positionsElements = Array.from(positionsContainer.childNodes).map(el => {
             return { el, animation: null };
