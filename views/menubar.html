@@ -237,7 +237,7 @@
 
       function blurMenu() {
         loader.style.display = 'block';
-        document.getElementById('reload').children[0].classList.add('reloading')
+        document.getElementById('reload').children[0].classList.add('reloading');
         positionsContainer.childNodes.forEach((el) => {
           el.classList.add('blur');
         });
@@ -285,6 +285,10 @@
 
       /* Attached as onclick handler for Stocks and Watchlist tabs */
       function switchTab(event, index) {
+        /* If reloading, prevent clicking on tab */
+        if (document.getElementById('reload').children[0].classList.contains('reloading')) {
+          return;
+        }
         tabIndex = index;
         for (let i = 0; i < tabContainer.children.length; ++i) {
           if (i === tabIndex) {
@@ -355,7 +359,7 @@
 
 
       function renderDOMElements() {
-
+        /* Repaint the positions container*/
         while (positionsContainer.hasChildNodes()) {
           positionsContainer.removeChild(positionsContainer.lastChild);
         }
@@ -417,12 +421,18 @@
         });
         positionsContainer.appendChild(fragment);
 
+        /* Repaint the watchlistContainer */
         while (watchlistContainer.hasChildNodes()) {
           watchlistContainer.removeChild(watchlistContainer.lastChild);
         }
 
         fragment = document.createDocumentFragment();
         data._watchlist.forEach((quote) => {
+          // for (let position of data._positions) {
+          //   if (position.symbol === quote.symbol) {
+          //     return;
+          //   }
+          // }
           let price = Number(quote.last_extended_hours_trade_price) || Number(quote.last_trade_price);
           let oldPrice = quote.previous_close;
 

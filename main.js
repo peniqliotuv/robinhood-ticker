@@ -42,12 +42,10 @@ let refresh;
 
 /* When we receieve the initial load from the login */
 ipcMain.on('data', (event, arg) => {
-  console.log('data received from IPC');
   RobinHoodAPI = arg;
   store.set('data', RobinHoodAPI);
   const equity = Number(RobinHoodAPI._portfolio.extended_hours_equity || RobinHoodAPI._portfolio.equity).toFixed(2);
   if (mb === null) {
-    console.log('mb === null, creating mb');
     tray.destroy();
     tray = new Tray(ICON_LOGO);
     mb = menubar({
@@ -60,7 +58,6 @@ ipcMain.on('data', (event, arg) => {
       tray,
       webPreferences: { experimentalFeatures: true },
     });
-    console.log(mb.window.webPreferences);
     mb.window.webContents.on('did-finish-load', () => {
       mb.window.webContents.send('data', { data: RobinHoodAPI, preferences: store.get('preferences') });
     });
@@ -126,9 +123,6 @@ ipcMain.on('app-quit', (event, arg) => {
 });
 
 ipcMain.on('show-about', (event, arg) => {
-
-  console.log('show about');
-
   openAboutWindow({
     icon_path: ICON_LOGO_LARGE,
     copyright: 'Copyright (c) 2018 Jerry Tsui',
@@ -175,23 +169,23 @@ const fetchWithAuth = (url, opts) => {
 const refreshAccountData = async (accountNumber) => {
   /* Fetch information about a user's positions*/
   try {
-    console.log('Starting refresh');
+    console.time('refreshAccountData');
     await Promise.all([
       refreshPositions(accountNumber),
       refreshPortfolio(accountNumber),
       refreshWatchlist(),
     ]);
-    console.log('End refresh');
+    console.timeEnd('refreshAccountData');
     const equity = Number(RobinHoodAPI._portfolio.extended_hours_equity || RobinHoodAPI._portfolio.equity).toFixed(2);
     tray.setTitle(`$${equity}`);
     mb.tray.setTitle(`${equity}`);
   } catch (e) {
     console.error(e);
-    console.error(e.stack);
   }
 }
 
 const refreshPositions = async (accountNumber) => {
+  console.time('refreshPositions');
   const res = await fetchWithAuth(`https://api.robinhood.com/accounts/${accountNumber}/positions/`);
   const json = await res.json();
   if (res.ok) {
@@ -215,9 +209,11 @@ const refreshPositions = async (accountNumber) => {
   } else {
     throw new Error('Could not retrieve positions');
   }
+  console.timeEnd('refreshPositions');
 }
 
 const refreshPortfolio = async (accountNumber) => {
+  console.time('refreshPortfolio');
   const res = await fetchWithAuth(`https://api.robinhood.com/accounts/${accountNumber}/portfolio/`);
   const json = await res.json();
   if (res.ok) {
@@ -225,10 +221,11 @@ const refreshPortfolio = async (accountNumber) => {
   } else {
     throw new Error('Could not retrieve portfolio');
   }
+  console.timeEnd('refreshPortfolio');
 }
 
 const refreshWatchlist = async () => {
-  console.log('Starting refresh watchlist!');
+  console.time('refreshWatchlist');
   try {
     const res = await fetchWithAuth('https://api.robinhood.com/watchlists/Default/');
     const json = await res.json();
@@ -237,11 +234,21 @@ const refreshWatchlist = async () => {
         .map(async (result) => {
           const instrument = await(await fetchWithAuth(decodeURIComponent(result.instrument))).json();
           return await(await fetchWithAuth(decodeURIComponent(instrument.quote))).json();
-        }));
-      RobinHoodAPI._watchlist = instruments;
+        })
+      );
+      RobinHoodAPI._watchlist = instruments.filter((quote) => {
+        for (let position of RobinHoodAPI._positions) {
+          if (position.symbol === quote.symbol) {
+            return false;
+          }
+        }
+        return true;
+      });
     }
+    console.timeEnd('refreshWatchlist');
   } catch (e) {
-    console.error(e.stack, e);
+    console.error('Error In refreshWatchlist');
+    console.error(e);
   }
 }
 
