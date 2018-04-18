@@ -6,7 +6,6 @@ const {
   session,
   ipcMain,
   dialog,
-  // globalShortcut,
 } = require('electron');
 const AutoLaunch = require('auto-launch');
 const fetch = require('node-fetch');
@@ -15,11 +14,14 @@ const url = require('url');
 const openAboutWindow = require('about-window').default;
 const menubar = require('menubar');
 const { appUpdater } = require('./app-updater');
+const { timeout, TimeoutError } = require('./utils/timeout.js');
 const Store = require('electron-store');
 const store = new Store();
 
 const ICON_LOGO_LARGE = `${__dirname}/assets/logo-512.png`;
 const ICON_LOGO = `${__dirname}/assets/logo-16.png`;
+
+const TIMEOUT_MS = 5000;
 
 if (process.env.NODE_ENV === 'development') {
   console.info('Electron is reloading');
@@ -43,12 +45,10 @@ let refresh;
 
 /* When we receieve the initial load from the login */
 ipcMain.on('data', (event, arg) => {
-  console.log('data received from IPC');
   RobinHoodAPI = arg;
   store.set('data', RobinHoodAPI);
   const equity = Number(RobinHoodAPI._portfolio.extended_hours_equity || RobinHoodAPI._portfolio.equity).toFixed(2);
   if (mb === null) {
-    console.log('mb === null, creating mb');
     tray.destroy();
     tray = new Tray(ICON_LOGO);
     mb = menubar({
@@ -59,6 +59,7 @@ ipcMain.on('data', (event, arg) => {
       width: 250,
       height: 500,
       tray,
+      webPreferences: { experimentalFeatures: true },
     });
     mb.window.webContents.on('did-finish-load', () => {
       mb.window.webContents.send('data', { data: RobinHoodAPI, preferences: store.get('preferences') });
@@ -81,10 +82,6 @@ ipcMain.on('preferences-saved', (event, arg) => {
   refresh = startRefresh();
 });
 
-ipcMain.on('show-stock-info', (event, arg) => {
-  const { symbol, color } = arg;
-  createStockInfoWindow(symbol, color);
-});
 
 ipcMain.on('open-preferences', (event, symbol) => {
   createPreferencesWindow();
@@ -125,9 +122,6 @@ ipcMain.on('app-quit', (event, arg) => {
 });
 
 ipcMain.on('show-about', (event, arg) => {
-
-  console.log('show about');
-
   openAboutWindow({
     icon_path: ICON_LOGO_LARGE,
     copyright: 'Copyright (c) 2018 Jerry Tsui',
@@ -164,7 +158,7 @@ const changeRefreshRate = (rate) => {
 
 const fetchWithAuth = (url, opts) => {
   const options = Object.assign({}, opts, { headers: { Authorization: `Token ${RobinHoodAPI._token}` } });
-  return fetch(url, options);
+  return timeout(TIMEOUT_MS, fetch(url, options));
 };
 
 /*
@@ -174,8 +168,28 @@ const fetchWithAuth = (url, opts) => {
 const refreshAccountData = async (accountNumber) => {
   /* Fetch information about a user's positions*/
   try {
-    let res = await fetchWithAuth(`https://api.robinhood.com/accounts/${accountNumber}/positions/`);
-    let json = await res.json();
+    console.time('refreshAccountData');
+    await Promise.all([
+      refreshPositions(accountNumber),
+      refreshPortfolio(accountNumber),
+      refreshWatchlist(),
+    ]);
+    console.timeEnd('refreshAccountData');
+    const equity = Number(RobinHoodAPI._portfolio.extended_hours_equity || RobinHoodAPI._portfolio.equity).toFixed(2);
+    tray.setTitle(`$${equity}`);
+    mb.tray.setTitle(`${equity}`);
+  } catch (e) {
+    if (e instanceof TimeoutError) {
+      console.error('Timeout Error', e);
+    }
+  }
+}
+
+const refreshPositions = async (accountNumber) => {
+  console.time('refreshPositions');
+  try {
+    const res = await fetchWithAuth(`https://api.robinhood.com/accounts/${accountNumber}/positions/`);
+    const json = await res.json();
     if (res.ok) {
       const transformed = await Promise.all(json.results
         .filter((result) => Number(result.quantity) !== 0)
@@ -193,32 +207,62 @@ const refreshAccountData = async (accountNumber) => {
             instrument: instrument,
           }
         }));
-      // console.log(RobinHoodAPI._positions);
       RobinHoodAPI._positions = transformed;
     } else {
       throw new Error('Could not retrieve positions');
     }
-    /* Fetch information about a user's portfolio*/
-    res = await fetchWithAuth(`https://api.robinhood.com/accounts/${accountNumber}/portfolio/`);
-    json = await res.json();
+  } catch (e) {
+    if (e instanceof TimeoutError) {
+      console.error('Timeout Error', e);
+    }
+  }
+  console.timeEnd('refreshPositions');
+}
+
+const refreshPortfolio = async (accountNumber) => {
+  console.time('refreshPortfolio');
+  try {
+    const res = await fetchWithAuth(`https://api.robinhood.com/accounts/${accountNumber}/portfolio/`);
+    const json = await res.json();
     if (res.ok) {
       RobinHoodAPI._portfolio = json;
-      console.log('Robinhood API Portfolio')
-      console.log(json);
     } else {
-      console.log(json);
       throw new Error('Could not retrieve portfolio');
     }
-
-    const equity = Number(RobinHoodAPI._portfolio.extended_hours_equity || RobinHoodAPI._portfolio.equity).toFixed(2);
-    tray.setTitle(`$${equity}`);
-    mb.tray.setTitle(`${equity}`);
   } catch (e) {
     console.error(e);
-    console.log('ERROR NAME');
-    console.log(e.name);
-    console.error(e.stack);
-    // throw e;
+  }
+  console.timeEnd('refreshPortfolio');
+}
+
+const refreshWatchlist = async () => {
+  console.time('refreshWatchlist');
+  try {
+    const res = await fetchWithAuth('https://api.robinhood.com/watchlists/Default/');
+    const json = await res.json();
+    if (res.ok) {
+      const watchlistInstruments = await Promise.all(json.results
+        .map(async (result) => {
+          return await(await fetchWithAuth(decodeURIComponent(result.instrument))).json();
+        })
+      );
+      const querystring = watchlistInstruments.map((instrument) => instrument.symbol).join(',');
+      const { results: watchlistQuotes } = await(await fetchWithAuth(`https://api.robinhood.com/quotes/?symbols=${querystring}`)).json();
+      RobinHoodAPI._watchlist = watchlistQuotes.filter((quote) => {
+        for (let position of RobinHoodAPI._positions) {
+          if (position.symbol === quote.symbol) {
+            return false;
+          }
+        }
+        return true;
+      });
+    }
+    console.timeEnd('refreshWatchlist');
+  } catch (e) {
+    console.error('Error In refreshWatchlist');
+    if (e instanceof TimeoutError) {
+      console.error('Timeout Error', e);
+    }
   }
 }
 
@@ -279,8 +323,8 @@ const createPreferencesWindow = () => {
   }
 
   preferences = new BrowserWindow({
-    height: 475,
-    width: 300,
+    height: 400,
+    width: 275,
     resizable: false,
     backgroundColor: '#212025',
     titleBarStyle: 'hidden',
@@ -302,37 +346,6 @@ const createPreferencesWindow = () => {
   });
 };
 
-
-const createStockInfoWindow = (symbol, color) => {
-  if (stockInfoWindow !== null) {
-    // Don't allow multiple stock info windows
-    stockInfoWindow.close();
-  }
-
-  stockInfoWindow = new BrowserWindow({
-    height: 750,
-    width: 1100,
-    resizable: false,
-    title: `${symbol}`,
-    backgroundColor: '#212025',
-    titleBarStyle: 'hidden',
-  });
-  stockInfoWindow.loadURL(url.format({
-    pathname: path.join(__dirname, 'views/chart.html'),
-    protocol: 'file:',
-    slashes: true,
-  }));
-
-  // stockInfoWindow.webContents.openDevTools({ mode: 'undocked' })
-
-  stockInfoWindow.webContents.on('did-finish-load', () => {
-    stockInfoWindow.webContents.send('data', { symbol, color });
-  });
-
-  stockInfoWindow.on('close', () => {
-    stockInfoWindow = null;
-  });
-};
 
 const isAuthenticated = () => store.get('data') ? true : false;
 
@@ -392,22 +405,22 @@ const initializeApp = () => {
       index: `file://${__dirname}/views/menubar.html`,
       width: 250,
       height: 500,
-      // alwaysOnTop: true,
       tray,
+      webPreferences: { experimentalFeatures: true },
     });
-
     mb.tray.setTitle(`$${equity}`);
     mb.window.webContents.on('did-finish-load', () => {
       mb.window.webContents.send('data', { data: RobinHoodAPI, preferences: store.get('preferences') });
     });
     mb.on('show', () => {
       mb.window.webContents.send('data', { data: RobinHoodAPI, preferences: store.get('preferences') });
-      // mb.window.openDevTools({ mode: 'undocked' });
+      // if (process.env.NODE_ENV === 'development') {
+      //   mb.window.openDevTools({ mode: 'undocked' });
+      // }
     });
     mb.on('hide', () => console.log('MenuBar hidden'));
     mb.window.webContents.once('did-frame-finish-load', () => {
       /* Check for auto updates */
-      console.log('did frame finish load')
       if (process.platform === 'darwin') {
         appUpdater();
       }
@@ -424,17 +437,6 @@ const initializeApp = () => {
   tray.on('closed', () => {
     tray = null;
   });
-
-  // globalShortcut.register('Command+R', async () => {
-  //   mb.window.webContents.send('command-r');
-  //   try {
-  //     await refreshAccountData(RobinHoodAPI._accountNumber);
-  //     mb.window.webContents.send('data', { data: RobinHoodAPI, preferences: store.get('preferences') });
-  //   } catch (e) {
-  //     console.error(e);
-  //     console.error(e.stack);
-  //   }
-  // });
 };
 
 // This method will be called when Electron has finished

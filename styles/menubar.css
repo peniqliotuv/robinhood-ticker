@@ -36,7 +36,7 @@ body.equity-loss {
 #backdrop {
     position: absolute;
     height: 400px;
-    background-color: #212025;
+    background-color: #1B1B1D;
     width: 100vw;
     top: 100px;
     z-index: -1
@@ -64,7 +64,7 @@ body.equity-loss {
     font-family: 'Din';
 }
 
-#positions {
+#positions, #watchlist {
     width: 235px;
     max-height: 400px;
     overflow-y: scroll;
@@ -72,9 +72,17 @@ body.equity-loss {
     background-color: #303032;
     border-radius: 2px;
     margin: 10px 0;
+    margin-top: 5px;
+    display: none;
 }
 
-#positions::-webkit-scrollbar {
+#positions.active, #watchlist.active {
+    transition: all 1s linear;
+    display: block;
+}
+
+#positions::-webkit-scrollbar,
+#watchlist::-webkit-scrollbar {
   display: none;
 }
 
@@ -104,13 +112,14 @@ body.equity-loss {
     color:  #E35F3E;
 }
 
-.blur > .symbol-container > div,
-.blur > .symbol-container > p,
-.blur > .difference-container {
+.blur .symbol-container > div,
+.blur .symbol-container > p,
+.blur .difference-container {
     opacity: 0;
 }
 
-.blur:hover {
+
+.blur .stock:hover {
     cursor: default;
     background-color: initial;
 }
@@ -178,6 +187,48 @@ body.equity-loss {
     animation: rotate 1.5s linear infinite;
 }
 
+.tab-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items:  center;
+    margin-top: 15px;
+    border-radius: 2px;
+    color:   #61CA9D;
+    height: 30px;
+    width:  235px;
+}
+
+.tab-container.equity-loss {
+    color:  #E35F3E;
+}
+
+.tab-container > .tab {
+    width: 100%;
+    font-size: 16px;
+    text-align: center;
+    padding: 5px;
+    cursor: pointer;
+    border-bottom:  1.5px solid #1B1B1D;
+    transition: all 0.3s ease-in-out;
+}
+
+
+.tab-container > .tab.active {
+    border-bottom:  1.5px solid #61AC9D;
+}
+
+.tab-container.equity-loss > .tab.active {
+    border-bottom:  1.5px solid #E35F3E;
+}
+
+#loader {
+    top:  250px;
+}
+
+#loader.equity-loss {
+    color: #E35F3E!important;
+}
 
 
 /*!
