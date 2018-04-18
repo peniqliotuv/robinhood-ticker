@@ -16,7 +16,7 @@ body {
     font-family: 'Din-Light', sans-serif;
     font-weight: 100;
     user-select: none;
-    background-color:  #61CA9D;
+    background-color:  #212025;
     -webkit-app-region: drag;
 }
 /* Needed so button is not draggable */
@@ -33,7 +33,7 @@ input {
     display: flex;
     justify-content: center;
     width: 100%;
-    margin-top: 50px;
+    margin-top: 20px;
     align-items: center;
     flex-direction: column
 }

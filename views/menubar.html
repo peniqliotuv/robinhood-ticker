@@ -49,6 +49,7 @@
 
     <script>
       const { remote, ipcRenderer } = require('electron');
+      const { isAfterHours } = require('../utils/stockHelpers.js');
       const moment = require('moment-timezone');
 
       const tabContainer = document.getElementsByClassName('tab-container')[0];
@@ -71,6 +72,9 @@
       correctly calculated*/
       function draggable(obj, container) {
         obj.onmousedown = function(e) {
+          if (isReloading()) {
+            return;
+          }
           dragObj = obj;
           dragObj.yGrabPos = e.pageY;
           dragObj.container = container;
@@ -114,15 +118,22 @@
           data._positions.forEach((position) => {
             const index = ordering.indexOf(position.symbol);
             sortedPositions[index] = position;
-          })
+          });
+          const positionsIndices = sortedPositions.map((position, index) => {
+            return { position, index };
+          });
+          console.log(positionsIndices);
           data._positions = sortedPositions;
         } else if (tabIndex === 1) {
-          console.log('tabindex === 1')
           const sortedWatchlist = new Array(data._watchlist.length);
-          data._watchlist.forEach((position) => {
-            const index = ordering.indexOf(position.symbol);
-            sortedWatchlist[index] = position;
-          })
+          data._watchlist.forEach((watchlist) => {
+            const index = ordering.indexOf(watchlist.symbol);
+            sortedWatchlist[index] = watchlist;
+          });
+          const watchlistIndices = sortedWatchlist.map((watchlist, index) => {
+            return { watchlist, index };
+          });
+          console.log(watchlistIndices);
           data._watchlist = sortedWatchlist;
         }
 
@@ -222,22 +233,19 @@
         });
       };
 
-      function isAfterHours() {
-        const EST = moment().tz('America/New_York');
-        const hours = EST.hours();
-        if (hours < 16) {
-          return false;
-        }
-        return true;
-      }
-
       function openPreferences() {
         ipcRenderer.send('open-preferences', true);
       }
 
       function blurMenu() {
         loader.style.display = 'block';
-        document.getElementById('reload').children[0].classList.add('reloading');
+        const spinner = document.getElementById('reload').children[0];
+        spinner.classList.add('reloading');
+        if (Number(data._portfolio.equity) - Number(data._portfolio.adjusted_equity_previous_close) < 0) {
+          loader.classList.add('equity-loss');
+        } else if (loader.classList.contains('equity-loss')) {
+          loader.classList.remove('equity-loss');
+        }
         positionsContainer.childNodes.forEach((el) => {
           el.classList.add('blur');
         });
@@ -283,10 +291,14 @@
         return { equity, equityDifference, afterHoursEquityDifference, didProfit };
       }
 
+      function isReloading() {
+        return document.getElementById('reload').children[0].classList.contains('reloading');
+      }
+
       /* Attached as onclick handler for Stocks and Watchlist tabs */
       function switchTab(event, index) {
         /* If reloading, prevent clicking on tab */
-        if (document.getElementById('reload').children[0].classList.contains('reloading')) {
+        if (isReloading()) {
           return;
         }
         tabIndex = index;
@@ -315,7 +327,7 @@
       */
       ipcRenderer.on('data', (event, message) => {
         data = message.data;
-        console.log(data);
+        // console.log(data);
         preferences = message.preferences;
         repaintDOM();
       });
@@ -350,8 +362,10 @@
         /* If there was an overall loss, change the background color to red. */
         if (!didProfit) {
           document.body.classList.add('equity-loss');
+          tabContainer.classList.add('equity-loss');
         } else {
           document.body.className = '';
+          tabContainer.className = 'tab-container';
         }
 
         renderDOMElements();

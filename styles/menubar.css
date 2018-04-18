@@ -199,6 +199,10 @@ body.equity-loss {
     width:  235px;
 }
 
+.tab-container.equity-loss {
+    color:  #E35F3E;
+}
+
 .tab-container > .tab {
     width: 100%;
     font-size: 16px;
@@ -214,7 +218,17 @@ body.equity-loss {
     border-bottom:  1.5px solid #61AC9D;
 }
 
+.tab-container.equity-loss > .tab.active {
+    border-bottom:  1.5px solid #E35F3E;
+}
 
+#loader {
+    top:  250px;
+}
+
+#loader.equity-loss {
+    color: #E35F3E!important;
+}
 
 
 /*!

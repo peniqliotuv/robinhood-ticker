@@ -14,11 +14,14 @@ const url = require('url');
 const openAboutWindow = require('about-window').default;
 const menubar = require('menubar');
 const { appUpdater } = require('./app-updater');
+const { timeout, TimeoutError } = require('./utils/timeout.js');
 const Store = require('electron-store');
 const store = new Store();
 
 const ICON_LOGO_LARGE = `${__dirname}/assets/logo-512.png`;
 const ICON_LOGO = `${__dirname}/assets/logo-16.png`;
+
+const TIMEOUT_MS = 5000;
 
 if (process.env.NODE_ENV === 'development') {
   console.info('Electron is reloading');
@@ -159,7 +162,7 @@ const changeRefreshRate = (rate) => {
 
 const fetchWithAuth = (url, opts) => {
   const options = Object.assign({}, opts, { headers: { Authorization: `Token ${RobinHoodAPI._token}` } });
-  return fetch(url, options);
+  return timeout(TIMEOUT_MS, fetch(url, options));
 };
 
 /*
@@ -180,46 +183,58 @@ const refreshAccountData = async (accountNumber) => {
     tray.setTitle(`$${equity}`);
     mb.tray.setTitle(`${equity}`);
   } catch (e) {
-    console.error(e);
+    if (e instanceof TimeoutError) {
+      console.error('Timeout Error', e);
+    }
   }
 }
 
 const refreshPositions = async (accountNumber) => {
   console.time('refreshPositions');
-  const res = await fetchWithAuth(`https://api.robinhood.com/accounts/${accountNumber}/positions/`);
-  const json = await res.json();
-  if (res.ok) {
-    const transformed = await Promise.all(json.results
-      .filter((result) => Number(result.quantity) !== 0)
-      .map(async (result) => {
-        const instrument = await(await fetchWithAuth(decodeURIComponent(result.instrument))).json();
-        const quote = await(await fetchWithAuth(decodeURIComponent(instrument.quote))).json();
-        return {
-          averageBuyPrice: result.average_buy_price,
-          instrument: result.instrument,
-          quantity: Number(result.quantity),
-          quote: quote,
-          currentPrice: quote.last_traded_price,
-          symbol: instrument.symbol,
-          name: instrument.name,
-          instrument: instrument,
-        }
-      }));
-    RobinHoodAPI._positions = transformed;
-  } else {
-    throw new Error('Could not retrieve positions');
+  try {
+    const res = await fetchWithAuth(`https://api.robinhood.com/accounts/${accountNumber}/positions/`);
+    const json = await res.json();
+    if (res.ok) {
+      const transformed = await Promise.all(json.results
+        .filter((result) => Number(result.quantity) !== 0)
+        .map(async (result) => {
+          const instrument = await(await fetchWithAuth(decodeURIComponent(result.instrument))).json();
+          const quote = await(await fetchWithAuth(decodeURIComponent(instrument.quote))).json();
+          return {
+            averageBuyPrice: result.average_buy_price,
+            instrument: result.instrument,
+            quantity: Number(result.quantity),
+            quote: quote,
+            currentPrice: quote.last_traded_price,
+            symbol: instrument.symbol,
+            name: instrument.name,
+            instrument: instrument,
+          }
+        }));
+      RobinHoodAPI._positions = transformed;
+    } else {
+      throw new Error('Could not retrieve positions');
+    }
+  } catch (e) {
+    if (e instanceof TimeoutError) {
+      console.error('Timeout Error', e);
+    }
   }
   console.timeEnd('refreshPositions');
 }
 
 const refreshPortfolio = async (accountNumber) => {
   console.time('refreshPortfolio');
-  const res = await fetchWithAuth(`https://api.robinhood.com/accounts/${accountNumber}/portfolio/`);
-  const json = await res.json();
-  if (res.ok) {
-    RobinHoodAPI._portfolio = json;
-  } else {
-    throw new Error('Could not retrieve portfolio');
+  try {
+    const res = await fetchWithAuth(`https://api.robinhood.com/accounts/${accountNumber}/portfolio/`);
+    const json = await res.json();
+    if (res.ok) {
+      RobinHoodAPI._portfolio = json;
+    } else {
+      throw new Error('Could not retrieve portfolio');
+    }
+  } catch (e) {
+    console.error(e);
   }
   console.timeEnd('refreshPortfolio');
 }
@@ -230,13 +245,14 @@ const refreshWatchlist = async () => {
     const res = await fetchWithAuth('https://api.robinhood.com/watchlists/Default/');
     const json = await res.json();
     if (res.ok) {
-      const instruments = await Promise.all(json.results
+      const watchlistInstruments = await Promise.all(json.results
         .map(async (result) => {
-          const instrument = await(await fetchWithAuth(decodeURIComponent(result.instrument))).json();
-          return await(await fetchWithAuth(decodeURIComponent(instrument.quote))).json();
+          return await(await fetchWithAuth(decodeURIComponent(result.instrument))).json();
         })
       );
-      RobinHoodAPI._watchlist = instruments.filter((quote) => {
+      const querystring = watchlistInstruments.map((instrument) => instrument.symbol).join(',');
+      const { results: watchlistQuotes } = await(await fetchWithAuth(`https://api.robinhood.com/quotes/?symbols=${querystring}`)).json();
+      RobinHoodAPI._watchlist = watchlistQuotes.filter((quote) => {
         for (let position of RobinHoodAPI._positions) {
           if (position.symbol === quote.symbol) {
             return false;
@@ -248,7 +264,9 @@ const refreshWatchlist = async () => {
     console.timeEnd('refreshWatchlist');
   } catch (e) {
     console.error('Error In refreshWatchlist');
-    console.error(e);
+    if (e instanceof TimeoutError) {
+      console.error('Timeout Error', e);
+    }
   }
 }
 
@@ -309,8 +327,8 @@ const createPreferencesWindow = () => {
   }
 
   preferences = new BrowserWindow({
-    height: 475,
-    width: 300,
+    height: 400,
+    width: 275,
     resizable: false,
     backgroundColor: '#212025',
     titleBarStyle: 'hidden',
@@ -321,7 +339,7 @@ const createPreferencesWindow = () => {
     protocol: 'file:',
     slashes: true,
   }));
-  // preferences.webContents.openDevTools({ mode: 'undocked' })
+  preferences.webContents.openDevTools({ mode: 'undocked' })
 
   preferences.webContents.on('did-finish-load', () => {
     preferences.webContents.send('preferences', store.get('preferences'));
@@ -439,7 +457,6 @@ const initializeApp = () => {
     mb.on('hide', () => console.log('MenuBar hidden'));
     mb.window.webContents.once('did-frame-finish-load', () => {
       /* Check for auto updates */
-      console.log('did frame finish load')
       if (process.platform === 'darwin') {
         appUpdater();
       }
