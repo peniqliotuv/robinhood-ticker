@@ -7,7 +7,8 @@ Easily track the performance of your Robinhood stock portfolio just by glancing 
 <p align="center"><img src="https://puu.sh/A5pRr/7277cc2e73.png" height="400px"/></p>
 
 ## Getting Started
-Navigate to the [releases](https://github.com/peniqliotuv/robinhood-ticker/releases) page and download the latest version for MacOS. Support for windows is currently in progress.
+The latest release for MacOS is version 2.2.0: https://github.com/peniqliotuv/robinhood-ticker/releases/tag/v2.2.0
+Support for windows is currently in progress.
 
 ## Features
  - Automatic refresh intervals (1, 2, 5, 15 minutes)
@@ -23,7 +24,7 @@ Authenticating with Robinhood
 
 ## Releases
 MacOS only currently
-https://github.com/peniqliotuv/robinhood-ticker/releases
+Latest Release: https://github.com/peniqliotuv/robinhood-ticker/releases/tag/v2.2.0
 ## Built With
  - [Electron](https://electronjs.org/)
  - Vanilla Javascript ❤️
