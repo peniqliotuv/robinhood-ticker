@@ -30,14 +30,7 @@
   },
   "devDependencies": {
     "devtron": "^1.4.0",
-<<<<<<< HEAD
-<<<<<<< Updated upstream
-    "electron": "~1.7.8",
-=======
     "electron": "^1.8.4",
->>>>>>> Stashed changes
-=======
->>>>>>> e4d0f6eb8fcfd11c65830b2ef7d599ecbfbc1a71
     "electron-builder": "^19.55.2",
     "electron-builder-squirrel-windows": "^20.2.0",
     "electron-debug": "^1.5.0",
@@ -47,15 +40,6 @@
   "dependencies": {
     "about-window": "^1.9.1",
     "auto-launch": "^5.0.5",
-<<<<<<< Updated upstream
-    "chart.js": "^2.7.1",
-    "chartjs-plugin-zoom": "^0.6.3",
-<<<<<<< HEAD
-=======
->>>>>>> Stashed changes
-=======
-    "electron": "^1.8.4",
->>>>>>> e4d0f6eb8fcfd11c65830b2ef7d599ecbfbc1a71
     "electron-log": "^2.2.14",
     "electron-store": "^1.3.0",
     "electron-updater": "^2.20.1",
