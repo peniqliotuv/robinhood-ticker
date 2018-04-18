@@ -82,10 +82,6 @@ ipcMain.on('preferences-saved', (event, arg) => {
   refresh = startRefresh();
 });
 
-ipcMain.on('show-stock-info', (event, arg) => {
-  const { symbol, color } = arg;
-  createStockInfoWindow(symbol, color);
-});
 
 ipcMain.on('open-preferences', (event, symbol) => {
   createPreferencesWindow();
@@ -339,7 +335,7 @@ const createPreferencesWindow = () => {
     protocol: 'file:',
     slashes: true,
   }));
-  preferences.webContents.openDevTools({ mode: 'undocked' })
+  // preferences.webContents.openDevTools({ mode: 'undocked' })
 
   preferences.webContents.on('did-finish-load', () => {
     preferences.webContents.send('preferences', store.get('preferences'));
@@ -350,37 +346,6 @@ const createPreferencesWindow = () => {
   });
 };
 
-
-const createStockInfoWindow = (symbol, color) => {
-  if (stockInfoWindow !== null) {
-    // Don't allow multiple stock info windows
-    stockInfoWindow.close();
-  }
-
-  stockInfoWindow = new BrowserWindow({
-    height: 750,
-    width: 1100,
-    resizable: false,
-    title: `${symbol}`,
-    backgroundColor: '#212025',
-    titleBarStyle: 'hidden',
-  });
-  stockInfoWindow.loadURL(url.format({
-    pathname: path.join(__dirname, 'views/chart.html'),
-    protocol: 'file:',
-    slashes: true,
-  }));
-
-  // stockInfoWindow.webContents.openDevTools({ mode: 'undocked' })
-
-  stockInfoWindow.webContents.on('did-finish-load', () => {
-    stockInfoWindow.webContents.send('data', { symbol, color });
-  });
-
-  stockInfoWindow.on('close', () => {
-    stockInfoWindow = null;
-  });
-};
 
 const isAuthenticated = () => store.get('data') ? true : false;
 
@@ -440,7 +405,6 @@ const initializeApp = () => {
       index: `file://${__dirname}/views/menubar.html`,
       width: 250,
       height: 500,
-      alwaysOnTop: true,
       tray,
       webPreferences: { experimentalFeatures: true },
     });
@@ -450,9 +414,9 @@ const initializeApp = () => {
     });
     mb.on('show', () => {
       mb.window.webContents.send('data', { data: RobinHoodAPI, preferences: store.get('preferences') });
-      if (process.env.NODE_ENV === 'development') {
-        mb.window.openDevTools({ mode: 'undocked' });
-      }
+      // if (process.env.NODE_ENV === 'development') {
+      //   mb.window.openDevTools({ mode: 'undocked' });
+      // }
     });
     mb.on('hide', () => console.log('MenuBar hidden'));
     mb.window.webContents.once('did-frame-finish-load', () => {

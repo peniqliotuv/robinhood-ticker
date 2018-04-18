@@ -1,7 +1,10 @@
+const log = require('electron-log');
+
 class TimeoutError extends Error {
   constructor(...args) {
     super(...args);
     Error.captureStackTrace(this, TimeoutError);
+    log.error(...args);
   }
 }
 

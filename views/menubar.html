@@ -63,6 +63,9 @@
       let timeoutId = null;
       let data = null;
       let preferences = null;
+
+      let positionsIndices = null;
+      let watchlistIndices = null;
       /* Draggable Code */
       let dragObj = null;
       let positionsElements = null;
@@ -119,9 +122,7 @@
             const index = ordering.indexOf(position.symbol);
             sortedPositions[index] = position;
           });
-          const positionsIndices = sortedPositions.map((position, index) => {
-            return { position, index };
-          });
+          positionsIndices = sortedPositions.map((position) => position.symbol);
           console.log(positionsIndices);
           data._positions = sortedPositions;
         } else if (tabIndex === 1) {
@@ -130,9 +131,7 @@
             const index = ordering.indexOf(watchlist.symbol);
             sortedWatchlist[index] = watchlist;
           });
-          const watchlistIndices = sortedWatchlist.map((watchlist, index) => {
-            return { watchlist, index };
-          });
+          watchlistIndices = sortedWatchlist.map((watchlist) => watchlist.symbol);
           console.log(watchlistIndices);
           data._watchlist = sortedWatchlist;
         }
@@ -318,6 +317,29 @@
         }
       }
 
+      /* Helper function called when data comes in from IPC. If positionsIndices, watchlistIndices == null, then
+      we ignore.*/
+      function sortData(messageData) {
+        if (positionsIndices !== null && positionsIndices.length === messageData._positions.length) {
+          const sortedPositions = new Array(messageData._positions.length);
+          messageData._positions.forEach((position) => {
+            const index = positionsIndices.indexOf(position.symbol);
+            sortedPositions[index] = position;
+          });
+          messageData._positions = sortedPositions;
+        }
+
+        if (watchlistIndices !== null && watchlistIndices.length === messageData._watchlist.length) {
+          const sortedWatchlist = new Array(messageData._watchlist.length);
+          messageData._watchlist.forEach((position) => {
+            const index = watchlistIndices.indexOf(position.symbol);
+            sortedWatchlist[index] = position;
+          });
+          messageData._watchlist = sortedWatchlist;
+        }
+        return messageData;
+      }
+
       /*
         Note to anyone who might be reading this:
         If you want to start working on a project and think
@@ -326,7 +348,7 @@
         I WISH I WROTE THIS IN REACT >:(
       */
       ipcRenderer.on('data', (event, message) => {
-        data = message.data;
+        data = sortData(message.data);
         // console.log(data);
         preferences = message.preferences;
         repaintDOM();
@@ -418,13 +440,6 @@
             differenceContainer.classList.add('equity-loss');
           }
           differenceContainer.innerHTML = difference;
-
-          // el.onclick = () => {
-          //   ipcRenderer.send('show-stock-info', {
-          //     symbol: data.symbol,
-          //     color: difference[0] === '+' ? '#50A885' : '#E35F3E',
-          //   });
-          // }
 
           el.appendChild(symbolContainer);
           el.appendChild(differenceContainer);
