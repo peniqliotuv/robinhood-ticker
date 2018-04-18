@@ -98,11 +98,21 @@
             const accountNumber = await RobinHoodAPI.getAccountNumber();
             RobinHoodAPI.accountNumber = accountNumber;
 
-            const positions = await RobinHoodAPI.getPositions();
-            RobinHoodAPI.positions = positions;
+            // const positions = await RobinHoodAPI.getPositions();
+            // RobinHoodAPI.positions = positions;
 
-            const portfolio = await RobinHoodAPI.getPortfolio();
-            RobinHoodAPI.portfolio = portfolio;
+            // const portfolio = await RobinHoodAPI.getPortfolio();
+            // RobinHoodAPI.portfolio = portfolio;
+
+            const results = await Promise.all([
+              RobinHoodAPI.getPositions(),
+              RobinHoodAPI.getPortfolio(),
+              RobinHoodAPI.getWatchlist(),
+            ]);
+            RobinHoodAPI.positions = results[0];
+            RobinHoodAPI.portfolio = results[1];
+            RobinHoodAPI.watchlist = results[2];
+            console.log(RobinHoodAPI);
 
             ipcRenderer.send('data', RobinHoodAPI);
             window.close();
