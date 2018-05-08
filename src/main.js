@@ -1,4 +1,5 @@
-const {
+import 'babel-polyfill';
+import {
   app,
   BrowserWindow,
   Tray,
@@ -6,27 +7,30 @@ const {
   session,
   ipcMain,
   dialog
-} = require('electron');
-const AutoLaunch = require('auto-launch');
-const fetch = require('node-fetch');
-const path = require('path');
-const url = require('url');
-const openAboutWindow = require('about-window').default;
-const menubar = require('menubar');
-const { appUpdater } = require('./app-updater');
-const { timeout, TimeoutError } = require('./utils/timeout.js');
-const Store = require('electron-store');
+} from 'electron';
+import AutoLaunch from 'auto-launch';
+import fetch from 'node-fetch';
+import path from 'path';
+import url from 'url';
+import openAboutWindow from 'about-window';
+import menubar from 'menubar';
+import { appUpdater } from './app-updater';
+import { timeout, TimeoutError } from './utils/timeout.js';
+import Store from 'electron-store';
+
 const store = new Store();
 
-const ICON_LOGO_LARGE = `${__dirname}/assets/logo-512.png`;
-const ICON_LOGO = `${__dirname}/assets/logo-16.png`;
+const ICON_LOGO_LARGE = path.join(__dirname, '../assets/logo-512.png');
+const ICON_LOGO = path.join(__dirname, '../assets/logo-16.png');
 
 const TIMEOUT_MS = 5000;
 
+console.log(process.env.NODE_ENV);
 if (process.env.NODE_ENV === 'development') {
   console.info('Electron is reloading');
+  console.log(path.join(__dirname, '../node_modules/electron'));
   require('electron-reload')(__dirname, {
-    electron: require(`${__dirname}/node_modules/electron`)
+    electron: require(path.join(__dirname, '../node_modules/electron'))
   });
 }
 
@@ -56,7 +60,7 @@ ipcMain.on('data', (event, arg) => {
     tray = new Tray(ICON_LOGO);
     mb = menubar({
       dir: __dirname,
-      icon: `${__dirname}/assets/logo-16.png`,
+      icon: ICON_LOGO,
       preloadWindow: true,
       index: `file://${__dirname}/views/menubar.html`,
       width: 250,
@@ -449,7 +453,7 @@ const initializeApp = () => {
     global.addAuthHeaders(RobinHoodAPI._token);
     mb = menubar({
       dir: __dirname,
-      icon: `${__dirname}/assets/logo-16.png`,
+      icon: ICON_LOGO,
       preloadWindow: true,
       index: `file://${__dirname}/views/menubar.html`,
       width: 250,

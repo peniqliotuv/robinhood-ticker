@@ -7,7 +7,7 @@ const version = app.getVersion();
 const platform = os.platform() + '_' + os.arch(); // usually returns darwin_64
 const updaterFeedURL = `https://rh-ticker-deploy-server.herokuapp.com/update/${platform}/${version}`;
 
-function appUpdater() {
+export function appUpdater() {
   if (process.env.NODE_ENV === 'development') {
     return;
   }
@@ -58,6 +58,6 @@ function appUpdater() {
   autoUpdater.checkForUpdates();
 }
 
-exports = module.exports = {
-  appUpdater
-};
+// exports = module.exports = {
+//   appUpdater
+// };

@@ -10,5 +10,5 @@ function isAfterHours() {
 }
 
 module.exports = {
-  isAfterHours,
+  isAfterHours
 };

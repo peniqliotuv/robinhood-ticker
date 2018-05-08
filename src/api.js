@@ -186,4 +186,6 @@ class RobinHoodAPI {
 
 let data = new RobinHoodAPI();
 
-module.exports = data;
+// module.exports = data;
+
+export default data;

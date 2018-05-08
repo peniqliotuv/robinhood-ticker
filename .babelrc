@@ -1,0 +1,9 @@
+{
+  "presets": ["env"],
+  "plugins": ["transform-remove-console"],
+  "env": {
+    "production": {
+      "presets": ["minify"]
+    }
+  }
+}

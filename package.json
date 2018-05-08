@@ -1,13 +1,15 @@
 {
   "name": "RH-Ticker",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "license": "MIT",
   "description": "Robinhood Ticker",
   "repository": "https://github.com/peniqliotuv/robinhood-ticker",
-  "main": "main.js",
+  "main": "lib/main.js",
   "scripts": {
     "prod-test": "NODE_ENV=production electron .",
     "start": "NODE_ENV=development electron .",
+    "build": "NODE_ENV=production cp -r src/styles lib && cp -r src/views lib && babel src --out-dir lib",
+    "build-watch": "cp -r src/styles lib && cp -r src/views lib && babel src --out-dir lib --watch",
     "debug": "NODE_ENV=development electron --inspect=5858 .",
     "pack": "NODE_ENV=production electron-builder --dir",
     "dist": "NODE_ENV=production electron-builder",
@@ -29,6 +31,10 @@
     }
   },
   "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-minify": "^0.4.1",
+    "babel-preset-env": "^1.6.1",
+    "babel-preset-stage-0": "^6.24.1",
     "devtron": "^1.4.0",
     "electron": "^1.8.4",
     "electron-builder": "^19.55.2",
@@ -42,6 +48,8 @@
   "dependencies": {
     "about-window": "^1.9.1",
     "auto-launch": "^5.0.5",
+    "babel-plugin-transform-remove-console": "^6.9.2",
+    "babel-polyfill": "^6.26.0",
     "electron-log": "^2.2.14",
     "electron-store": "^1.3.0",
     "electron-updater": "^2.20.1",

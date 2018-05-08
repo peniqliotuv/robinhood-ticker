@@ -8,7 +8,6 @@ class TimeoutError extends Error {
   }
 }
 
-
 function timeout(ms = 5000, promise) {
   return new Promise((resolve, reject) => {
     setTimeout(() => {
@@ -19,3 +18,4 @@ function timeout(ms = 5000, promise) {
 }
 
 module.exports = { timeout, TimeoutError };
+console.log('asdf');
