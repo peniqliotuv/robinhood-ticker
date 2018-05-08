@@ -5,7 +5,7 @@ const {
   Menu,
   session,
   ipcMain,
-  dialog,
+  dialog
 } = require('electron');
 const AutoLaunch = require('auto-launch');
 const fetch = require('node-fetch');
@@ -47,7 +47,10 @@ let refresh;
 ipcMain.on('data', (event, arg) => {
   RobinHoodAPI = arg;
   store.set('data', RobinHoodAPI);
-  const equity = Number(RobinHoodAPI._portfolio.extended_hours_equity || RobinHoodAPI._portfolio.equity).toFixed(2);
+  const equity = Number(
+    RobinHoodAPI._portfolio.extended_hours_equity ||
+      RobinHoodAPI._portfolio.equity
+  ).toFixed(2);
   if (mb === null) {
     tray.destroy();
     tray = new Tray(ICON_LOGO);
@@ -59,13 +62,19 @@ ipcMain.on('data', (event, arg) => {
       width: 250,
       height: 500,
       tray,
-      webPreferences: { experimentalFeatures: true },
+      webPreferences: { experimentalFeatures: true }
     });
     mb.window.webContents.on('did-finish-load', () => {
-      mb.window.webContents.send('data', { data: RobinHoodAPI, preferences: store.get('preferences') });
+      mb.window.webContents.send('data', {
+        data: RobinHoodAPI,
+        preferences: store.get('preferences')
+      });
     });
     mb.on('show', () => {
-      mb.window.webContents.send('data', { data: RobinHoodAPI, preferences: store.get('preferences') });
+      mb.window.webContents.send('data', {
+        data: RobinHoodAPI,
+        preferences: store.get('preferences')
+      });
       // mb.window.openDevTools({ mode: 'undocked' });
     });
     mb.on('hide', () => console.log('MenuBar hidden'));
@@ -78,10 +87,12 @@ ipcMain.on('preferences-saved', (event, arg) => {
   console.log('Preferences Saved!');
   console.log(arg);
   store.set('preferences', arg);
-  mb.window.webContents.send('data', { data: RobinHoodAPI, preferences: store.get('preferences') });
+  mb.window.webContents.send('data', {
+    data: RobinHoodAPI,
+    preferences: store.get('preferences')
+  });
   refresh = startRefresh();
 });
-
 
 ipcMain.on('open-preferences', (event, symbol) => {
   createPreferencesWindow();
@@ -89,7 +100,10 @@ ipcMain.on('open-preferences', (event, symbol) => {
 
 ipcMain.on('logout', async (event, arg) => {
   try {
-    const res = await fetchWithAuth('https://api.robinhood.com/api-token-logout/', { method: 'POST', Accept: 'application/json' });
+    const res = await fetchWithAuth(
+      'https://api.robinhood.com/api-token-logout/',
+      { method: 'POST', Accept: 'application/json' }
+    );
     RobinHoodAPI = null;
     const contextMenu = createLoginMenu();
     mb.tray.setTitle('');
@@ -109,9 +123,12 @@ ipcMain.on('manual-refresh', async (event, arg) => {
   try {
     await refreshAccountData(RobinHoodAPI._accountNumber);
     console.log('Finished manual refresh.');
-    mb.window.webContents.send('data', { data: RobinHoodAPI, preferences: store.get('preferences') });
+    mb.window.webContents.send('data', {
+      data: RobinHoodAPI,
+      preferences: store.get('preferences')
+    });
   } catch (e) {
-    console.error('***************************************')
+    console.error('***************************************');
     console.error(e);
     console.error(e.stack);
   }
@@ -126,9 +143,8 @@ ipcMain.on('show-about', (event, arg) => {
     icon_path: ICON_LOGO_LARGE,
     copyright: 'Copyright (c) 2018 Jerry Tsui',
     package_json_dir: __dirname,
-    description: 'www.github.com/peniqliotuv',
+    description: 'www.github.com/peniqliotuv'
   });
-
 });
 
 const startRefresh = () => {
@@ -138,7 +154,10 @@ const startRefresh = () => {
     try {
       await refreshAccountData(RobinHoodAPI._accountNumber);
       console.log('Finished automatic refresh.');
-      mb.window.webContents.send('data', { data: RobinHoodAPI, preferences: store.get('preferences') });
+      mb.window.webContents.send('data', {
+        data: RobinHoodAPI,
+        preferences: store.get('preferences')
+      });
     } catch (e) {
       console.log('Could not refresh');
       console.log(e);
@@ -147,7 +166,7 @@ const startRefresh = () => {
   }, refreshRate);
 };
 
-const changeRefreshRate = (rate) => {
+const changeRefreshRate = rate => {
   console.log(`Changing refresh rate to: ${rate}`);
   const preferences = store.get('preferences');
   const newPreferences = Object.assign({}, preferences, { refreshRate: rate });
@@ -157,7 +176,9 @@ const changeRefreshRate = (rate) => {
 };
 
 const fetchWithAuth = (url, opts) => {
-  const options = Object.assign({}, opts, { headers: { Authorization: `Token ${RobinHoodAPI._token}` } });
+  const options = Object.assign({}, opts, {
+    headers: { Authorization: `Token ${RobinHoodAPI._token}` }
+  });
   return timeout(TIMEOUT_MS, fetch(url, options));
 };
 
@@ -165,17 +186,20 @@ const fetchWithAuth = (url, opts) => {
   This method refreshes the account data and then repaints the contextmenu appropriately.
   May be called upon interval refresh or manual refresh.
 */
-const refreshAccountData = async (accountNumber) => {
+const refreshAccountData = async accountNumber => {
   /* Fetch information about a user's positions*/
   try {
     console.time('refreshAccountData');
     await Promise.all([
       refreshPositions(accountNumber),
       refreshPortfolio(accountNumber),
-      refreshWatchlist(),
+      refreshWatchlist()
     ]);
     console.timeEnd('refreshAccountData');
-    const equity = Number(RobinHoodAPI._portfolio.extended_hours_equity || RobinHoodAPI._portfolio.equity).toFixed(2);
+    const equity = Number(
+      RobinHoodAPI._portfolio.extended_hours_equity ||
+        RobinHoodAPI._portfolio.equity
+    ).toFixed(2);
     tray.setTitle(`$${equity}`);
     mb.tray.setTitle(`${equity}`);
   } catch (e) {
@@ -183,30 +207,38 @@ const refreshAccountData = async (accountNumber) => {
       console.error('Timeout Error', e);
     }
   }
-}
+};
 
-const refreshPositions = async (accountNumber) => {
+const refreshPositions = async accountNumber => {
   console.time('refreshPositions');
   try {
-    const res = await fetchWithAuth(`https://api.robinhood.com/accounts/${accountNumber}/positions/`);
+    const res = await fetchWithAuth(
+      `https://api.robinhood.com/accounts/${accountNumber}/positions/`
+    );
     const json = await res.json();
     if (res.ok) {
-      const transformed = await Promise.all(json.results
-        .filter((result) => Number(result.quantity) !== 0)
-        .map(async (result) => {
-          const instrument = await(await fetchWithAuth(decodeURIComponent(result.instrument))).json();
-          const quote = await(await fetchWithAuth(decodeURIComponent(instrument.quote))).json();
-          return {
-            averageBuyPrice: result.average_buy_price,
-            instrument: result.instrument,
-            quantity: Number(result.quantity),
-            quote: quote,
-            currentPrice: quote.last_traded_price,
-            symbol: instrument.symbol,
-            name: instrument.name,
-            instrument: instrument,
-          }
-        }));
+      const transformed = await Promise.all(
+        json.results
+          .filter(result => Number(result.quantity) !== 0)
+          .map(async result => {
+            const instrument = await (await fetchWithAuth(
+              decodeURIComponent(result.instrument)
+            )).json();
+            const quote = await (await fetchWithAuth(
+              decodeURIComponent(instrument.quote)
+            )).json();
+            return {
+              averageBuyPrice: result.average_buy_price,
+              instrument: result.instrument,
+              quantity: Number(result.quantity),
+              quote: quote,
+              currentPrice: quote.last_traded_price,
+              symbol: instrument.symbol,
+              name: instrument.name,
+              instrument: instrument
+            };
+          })
+      );
       RobinHoodAPI._positions = transformed;
     } else {
       throw new Error('Could not retrieve positions');
@@ -217,12 +249,14 @@ const refreshPositions = async (accountNumber) => {
     }
   }
   console.timeEnd('refreshPositions');
-}
+};
 
-const refreshPortfolio = async (accountNumber) => {
+const refreshPortfolio = async accountNumber => {
   console.time('refreshPortfolio');
   try {
-    const res = await fetchWithAuth(`https://api.robinhood.com/accounts/${accountNumber}/portfolio/`);
+    const res = await fetchWithAuth(
+      `https://api.robinhood.com/accounts/${accountNumber}/portfolio/`
+    );
     const json = await res.json();
     if (res.ok) {
       RobinHoodAPI._portfolio = json;
@@ -233,22 +267,30 @@ const refreshPortfolio = async (accountNumber) => {
     console.error(e);
   }
   console.timeEnd('refreshPortfolio');
-}
+};
 
 const refreshWatchlist = async () => {
   console.time('refreshWatchlist');
   try {
-    const res = await fetchWithAuth('https://api.robinhood.com/watchlists/Default/');
+    const res = await fetchWithAuth(
+      'https://api.robinhood.com/watchlists/Default/'
+    );
     const json = await res.json();
     if (res.ok) {
-      const watchlistInstruments = await Promise.all(json.results
-        .map(async (result) => {
-          return await(await fetchWithAuth(decodeURIComponent(result.instrument))).json();
+      const watchlistInstruments = await Promise.all(
+        json.results.map(async result => {
+          return await (await fetchWithAuth(
+            decodeURIComponent(result.instrument)
+          )).json();
         })
       );
-      const querystring = watchlistInstruments.map((instrument) => instrument.symbol).join(',');
-      const { results: watchlistQuotes } = await(await fetchWithAuth(`https://api.robinhood.com/quotes/?symbols=${querystring}`)).json();
-      RobinHoodAPI._watchlist = watchlistQuotes.filter((quote) => {
+      const querystring = watchlistInstruments
+        .map(instrument => instrument.symbol)
+        .join(',');
+      const { results: watchlistQuotes } = await (await fetchWithAuth(
+        `https://api.robinhood.com/quotes/?symbols=${querystring}`
+      )).json();
+      RobinHoodAPI._watchlist = watchlistQuotes.filter(quote => {
         for (let position of RobinHoodAPI._positions) {
           if (position.symbol === quote.symbol) {
             return false;
@@ -264,7 +306,7 @@ const refreshWatchlist = async () => {
       console.error('Timeout Error', e);
     }
   }
-}
+};
 
 // The login window.
 const createLoginWindow = () => {
@@ -276,7 +318,7 @@ const createLoginWindow = () => {
     title: 'RobinHood Ticker',
     resizable: false,
     titleBarStyle: 'hidden',
-    show: false,
+    show: false
   });
 };
 
@@ -290,27 +332,29 @@ const createLoginMenu = () => {
           win = createLoginWindow();
         }
 
-        win.loadURL(url.format({
-          pathname: path.join(__dirname, 'views/index.html'),
-          protocol: 'file:',
-          slashes: true,
-        }));
+        win.loadURL(
+          url.format({
+            pathname: path.join(__dirname, 'views/index.html'),
+            protocol: 'file:',
+            slashes: true
+          })
+        );
         // win.webContents.openDevTools({ mode: 'detach' });
         win.on('close', () => {
           win = null;
         });
         win.webContents.on('did-finish-load', () => win.show());
-      },
-    },
+      }
+    }
   ];
   template.push(
     {
-      type: 'separator',
+      type: 'separator'
     },
     {
       label: 'Quit',
-      click: () => app.quit(),
-    },
+      click: () => app.quit()
+    }
   );
   return Menu.buildFromTemplate(template);
 };
@@ -327,14 +371,16 @@ const createPreferencesWindow = () => {
     width: 275,
     resizable: false,
     backgroundColor: '#212025',
-    titleBarStyle: 'hidden',
+    titleBarStyle: 'hidden'
   });
 
-  preferences.loadURL(url.format({
-    pathname: path.join(__dirname, 'views/preferences.html'),
-    protocol: 'file:',
-    slashes: true,
-  }));
+  preferences.loadURL(
+    url.format({
+      pathname: path.join(__dirname, 'views/preferences.html'),
+      protocol: 'file:',
+      slashes: true
+    })
+  );
   // preferences.webContents.openDevTools({ mode: 'undocked' })
 
   preferences.webContents.on('did-finish-load', () => {
@@ -346,8 +392,7 @@ const createPreferencesWindow = () => {
   });
 };
 
-
-const isAuthenticated = () => store.get('data') ? true : false;
+const isAuthenticated = () => (store.get('data') ? true : false);
 
 const initializeApp = () => {
   app.dock.hide();
@@ -355,9 +400,9 @@ const initializeApp = () => {
   const autoLaunch = new AutoLaunch({
     name: 'RH-Ticker',
     path: '/Applications/RH-Ticker.app',
-    isHidden: true,
+    isHidden: true
   });
-  autoLaunch.isEnabled().then((isEnabled) => {
+  autoLaunch.isEnabled().then(isEnabled => {
     if (!isEnabled) autoLaunch.enable();
   });
 
@@ -373,30 +418,34 @@ const initializeApp = () => {
     store.set('preferences', {
       refreshRate: 1,
       viewChangeBy: 'gain/loss',
-      viewEquityBy: 'total-equity',
+      viewEquityBy: 'total-equity'
     });
   }
 
   // Create the browser window.
   win = createLoginWindow();
-  win.loadURL(url.format({
-    pathname: path.join(__dirname, 'index.html'),
-    protocol: 'file:',
-    slashes: true,
-  }));
+  win.loadURL(
+    url.format({
+      pathname: path.join(__dirname, 'index.html'),
+      protocol: 'file:',
+      slashes: true
+    })
+  );
 
   win.on('close', () => {
     win = null;
   });
 
-
   tray = new Tray(ICON_LOGO);
 
   let contextMenu;
   if (isAuthenticated()) {
-    console.log('authenticated')
+    console.log('authenticated');
     RobinHoodAPI = store.get('data');
-    const equity = Number(RobinHoodAPI._portfolio.extended_hours_equity || RobinHoodAPI._portfolio.equity).toFixed(2);
+    const equity = Number(
+      RobinHoodAPI._portfolio.extended_hours_equity ||
+        RobinHoodAPI._portfolio.equity
+    ).toFixed(2);
     global.addAuthHeaders(RobinHoodAPI._token);
     mb = menubar({
       dir: __dirname,
@@ -406,17 +455,23 @@ const initializeApp = () => {
       width: 250,
       height: 500,
       tray,
-      webPreferences: { experimentalFeatures: true },
+      webPreferences: { experimentalFeatures: true }
     });
     mb.tray.setTitle(`$${equity}`);
     mb.window.webContents.on('did-finish-load', () => {
-      mb.window.webContents.send('data', { data: RobinHoodAPI, preferences: store.get('preferences') });
+      mb.window.webContents.send('data', {
+        data: RobinHoodAPI,
+        preferences: store.get('preferences')
+      });
     });
     mb.on('show', () => {
-      mb.window.webContents.send('data', { data: RobinHoodAPI, preferences: store.get('preferences') });
-      // if (process.env.NODE_ENV === 'development') {
-      //   mb.window.openDevTools({ mode: 'undocked' });
-      // }
+      mb.window.webContents.send('data', {
+        data: RobinHoodAPI,
+        preferences: store.get('preferences')
+      });
+      if (process.env.NODE_ENV === 'development') {
+        mb.window.openDevTools({ mode: 'undocked' });
+      }
     });
     mb.on('hide', () => console.log('MenuBar hidden'));
     mb.window.webContents.once('did-frame-finish-load', () => {
@@ -467,16 +522,22 @@ app.on('activate', () => {
 });
 
 // Necessary to authenticating requests
-global.addAuthHeaders = (token) => {
+global.addAuthHeaders = token => {
   const filter = {
-    urls: ['https://api.robinhood.com/accounts/*', 'https://api.robinhood.com/api-token-logout/'],
+    urls: [
+      'https://api.robinhood.com/accounts/*',
+      'https://api.robinhood.com/api-token-logout/'
+    ]
   };
-  session.defaultSession.webRequest.onBeforeSendHeaders(filter, (details, callback) => {
-    details.requestHeaders['Origin'] = 'electron://robinhood-app';
-    details.requestHeaders['content-type'] = 'application/json';
-    details.requestHeaders['Authorization'] = `Token ${token}`
-    callback({ cancel: false, requestHeaders: details.requestHeaders });
-  });
+  session.defaultSession.webRequest.onBeforeSendHeaders(
+    filter,
+    (details, callback) => {
+      details.requestHeaders['Origin'] = 'electron://robinhood-app';
+      details.requestHeaders['content-type'] = 'application/json';
+      details.requestHeaders['Authorization'] = `Token ${token}`;
+      callback({ cancel: false, requestHeaders: details.requestHeaders });
+    }
+  );
 };
 
 global.addContentTypeHeaders = () => {
@@ -485,4 +546,4 @@ global.addContentTypeHeaders = () => {
     details.requestHeaders['content-type'] = 'application/json';
     callback({ cancel: false, requestHeaders: details.requestHeaders });
   });
-}
+};
