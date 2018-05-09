@@ -1,5 +1,3 @@
-// const queryString = require('query-string');
-// const fetch = require('node-fetch');
 import queryString from 'query-string';
 import fetch from 'node-fetch';
 
@@ -44,4 +42,3 @@ class StockAPI {
 }
 
 export default StockAPI;
-// module.exports = StockAPI;

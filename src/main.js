@@ -9,14 +9,17 @@ import {
   dialog
 } from 'electron';
 import AutoLaunch from 'auto-launch';
+import electronReload from 'electron-reload';
 import fetch from 'node-fetch';
 import path from 'path';
 import url from 'url';
 import openAboutWindow from 'about-window';
 import menubar from 'menubar';
 import { appUpdater } from './app-updater';
+import log from 'electron-log';
 import { timeout, TimeoutError } from './utils/timeout.js';
 import Store from 'electron-store';
+import StockAPI from './StockAPI';
 
 const store = new Store();
 
@@ -24,15 +27,13 @@ const ICON_LOGO_LARGE = path.join(__dirname, '../assets/logo-512.png');
 const ICON_LOGO = path.join(__dirname, '../assets/logo-16.png');
 
 const TIMEOUT_MS = 5000;
-
-console.log(`NODE_ENV: ${process.env.NODE_ENV}`);
+console.log(`APP START: NODE_ENV: ${process.env.NODE_ENV}`);
 if (process.env.NODE_ENV === 'development') {
-  require('electron-reload')(__dirname, {
+  electronReload(__dirname, {
     electron: require(path.join(__dirname, '../node_modules/electron'))
   });
-  require('electron-debug')({ showDevTools: 'undocked' });
+  require('electron-debug')();
 }
-
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 
@@ -99,6 +100,10 @@ ipcMain.on('preferences-saved', (event, arg) => {
 
 ipcMain.on('open-preferences', (event, symbol) => {
   createPreferencesWindow();
+});
+
+ipcMain.on('chart', (event, symbol) => {
+  createStockWindow(symbol);
 });
 
 ipcMain.on('logout', async (event, arg) => {
@@ -359,6 +364,41 @@ const createLoginMenu = () => {
     }
   );
   return Menu.buildFromTemplate(template);
+};
+
+const createStockWindow = async symbol => {
+  const data = await StockAPI.getSMA(symbol);
+  console.log('DATA: ');
+  console.log(data);
+  if (stockInfoWindow !== null) {
+    stockInfoWindow.show();
+    return;
+  }
+  stockInfoWindow = new BrowserWindow({
+    width: 500,
+    height: 450,
+    backgroundColor: '#212025',
+    center: true,
+    title: 'symbol',
+    resizable: false,
+    titleBarStyle: 'hidden',
+    show: false
+  });
+  stockInfoWindow.loadURL(
+    url.format({
+      pathname: path.join(__dirname, 'views/stock.html'),
+      protocol: 'file:',
+      slashes: true
+    })
+  );
+
+  stockInfoWindow.webContents.on('did-finish-load', () => {
+    stockInfoWindow.webContents.send('preferences', store.get('preferences'));
+  });
+
+  stockInfoWindow.on('close', () => {
+    stockInfoWindow = null;
+  });
 };
 
 const createPreferencesWindow = () => {

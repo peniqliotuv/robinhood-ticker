@@ -113,12 +113,11 @@
             })
 
             obj.onmousedown = function (e) {
+                /* Send a message to the main process to open the stock info window */
                 if (e.which === 1) {
-
-                } else if (e.which === 3) {
-                    console.log('RIGHT CLICK')
+                    const symbol = obj.childNodes[0].childNodes[0].childNodes[0].innerHTML;
+                    ipcRenderer.send('chart', symbol);
                 }
-
             }
         }
 

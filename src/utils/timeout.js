@@ -18,4 +18,3 @@ function timeout(ms = 5000, promise) {
 }
 
 module.exports = { timeout, TimeoutError };
-console.log('asdf');
