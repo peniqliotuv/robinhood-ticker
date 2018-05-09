@@ -7,6 +7,7 @@
     <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet">
     <link href="https://cdn.muicss.com/mui-0.9.36/css/mui.min.css" rel="stylesheet" type="text/css" />
     <script src="https://cdn.muicss.com/mui-0.9.36/js/mui.min.js"></script>
+    <script src="../utils/longPress.js"></script>
     <link rel="stylesheet" href="../styles/menubar.css" />
 </head>
 
@@ -48,23 +49,6 @@
             asdfasdf
         </div>
     </div>
-    <nav id="context-menu" class="context-menu">
-        <ul class="context-menu__items">
-            <li class="context-menu__item">
-                <a href="#" class="context-menu__link" data-action="View">
-                    <i class="fa fa-eye"></i> View Task</a>
-            </li>
-            <li class="context-menu__item">
-                <a href="#" class="context-menu__link" data-action="Edit">
-                    <i class="fa fa-edit"></i> Edit Task</a>
-            </li>
-            <li class="context-menu__item">
-                <a href="#" class="context-menu__link" data-action="Delete">
-                    <i class="fa fa-times"></i> Delete Task</a>
-            </li>
-        </ul>
-    </nav>
-
     <script>
         const { remote, ipcRenderer } = require('electron');
         const { isAfterHours } = require('../utils/stockHelpers.js');
@@ -93,34 +77,44 @@
         /* Grab a reference to the parent container of each <div> so that offset can be
         correctly calculated*/
         function draggable(obj, container) {
+            obj.addEventListener('long-press', (e) => {
+                e.preventDefault();
+                if (isReloading()) {
+                    return;
+                }
+                dragObj = obj;
+                dragObj.yGrabPos = e.pageY;
+                dragObj.container = container;
+                console.log(dragObj.container);
+                /* Create Placeholder object so that the elements don't collapse by an offset of 1 */
+
+                dragObj.style.position = 'absolute';
+                const width = dragObj.container.offsetWidth;
+                const height = dragObj.container.offsetHeight;
+
+                placeholder.style.width = `${dragObj.offsetWidth}px`;
+                placeholder.style.height = `${dragObj.offsetHeight}px`;
+                placeholder.className = 'stock-container placeholder';
+
+                dragObj.insertAdjacentElement('beforebegin', placeholder);
+
+                dragObj.style.width = `${width}px`;
+                dragObj.style.background = '#212025';
+                const oldTop = dragObj.offsetTop;
+                const newTop = oldTop - dragObj.offsetHeight - dragObj.container.scrollTop;
+                dragObj.style.top = `${newTop}px`;
+
+                /* Make it obvious that the stock elements are re-orderable */
+                positionsContainer.childNodes.forEach((el) => {
+                    if (!el.classList.contains('placeholder')) {
+                        el.childNodes[0].classList.add('movable');
+                    }
+                });
+            })
+
             obj.onmousedown = function (e) {
                 if (e.which === 1) {
-                    if (isReloading()) {
-                        return;
-                    }
-                    dragObj = obj;
-                    dragObj.yGrabPos = e.pageY;
-                    dragObj.container = container;
-                    console.log(dragObj.container);
-                    /* Create Placeholder object */
 
-                    dragObj.style.position = 'absolute';
-                    const width = dragObj.container.offsetWidth;
-                    const height = dragObj.container.offsetHeight;
-
-                    placeholder.style.width = `${dragObj.offsetWidth}px`;
-                    placeholder.style.height = `${dragObj.offsetHeight}px`;
-                    placeholder.className = 'stock-container placeholder';
-
-                    dragObj.insertAdjacentElement('beforebegin', placeholder);
-
-                    dragObj.style.width = `${width}px`;
-                    dragObj.style.background = '#212025';
-                    const oldTop = dragObj.offsetTop;
-                    const newTop = oldTop - dragObj.offsetHeight - dragObj.container.scrollTop;
-                    dragObj.style.top = `${newTop}px`;
-
-                    // const interval = setTimeout(() => obj.classList.add('shaking'), 500);
                 } else if (e.which === 3) {
                     console.log('RIGHT CLICK')
                 }
@@ -133,6 +127,7 @@
                 if (!positionsElements) {
                     return;
                 }
+
                 positionsElements.sort((a, b) => {
                     const rect1 = a.el.getBoundingClientRect();
                     const rect2 = b.el.getBoundingClientRect();
@@ -171,8 +166,6 @@
             } else if (e.which === 3) {
                 console.log('.... what do i do')
             }
-
-
         };
 
         function animate(el, height) {
@@ -333,10 +326,11 @@
             }
             tabIndex = index;
             for (let i = 0; i < tabContainer.children.length; ++i) {
+                removeClass(tabContainer.children[i], 'active');
                 if (i === tabIndex) {
                     tabContainer.children[i].classList.add('active');
                 }
-                removeClass(tabContainer.children[i], 'active');
+
             }
             if (tabIndex === 0) {
                 positionsContainer.className = 'active';
