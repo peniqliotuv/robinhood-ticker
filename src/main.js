@@ -25,13 +25,12 @@ const ICON_LOGO = path.join(__dirname, '../assets/logo-16.png');
 
 const TIMEOUT_MS = 5000;
 
-console.log(process.env.NODE_ENV);
+console.log(`NODE_ENV: ${process.env.NODE_ENV}`);
 if (process.env.NODE_ENV === 'development') {
-  console.info('Electron is reloading');
-  console.log(path.join(__dirname, '../node_modules/electron'));
   require('electron-reload')(__dirname, {
     electron: require(path.join(__dirname, '../node_modules/electron'))
   });
+  require('electron-debug')({ showDevTools: 'undocked' });
 }
 
 // Keep a global reference of the window object, if you don't, the window will
@@ -66,6 +65,7 @@ ipcMain.on('data', (event, arg) => {
       width: 250,
       height: 500,
       tray,
+      alwaysOnTop: true,
       webPreferences: { experimentalFeatures: true }
     });
     mb.window.webContents.on('did-finish-load', () => {
@@ -79,7 +79,6 @@ ipcMain.on('data', (event, arg) => {
         data: RobinHoodAPI,
         preferences: store.get('preferences')
       });
-      // mb.window.openDevTools({ mode: 'undocked' });
     });
     mb.on('hide', () => console.log('MenuBar hidden'));
   }
@@ -343,7 +342,6 @@ const createLoginMenu = () => {
             slashes: true
           })
         );
-        // win.webContents.openDevTools({ mode: 'detach' });
         win.on('close', () => {
           win = null;
         });
@@ -385,7 +383,6 @@ const createPreferencesWindow = () => {
       slashes: true
     })
   );
-  // preferences.webContents.openDevTools({ mode: 'undocked' })
 
   preferences.webContents.on('did-finish-load', () => {
     preferences.webContents.send('preferences', store.get('preferences'));
@@ -459,6 +456,7 @@ const initializeApp = () => {
       width: 250,
       height: 500,
       tray,
+      alwaysOnTop: true,
       webPreferences: { experimentalFeatures: true }
     });
     mb.tray.setTitle(`$${equity}`);
@@ -473,9 +471,6 @@ const initializeApp = () => {
         data: RobinHoodAPI,
         preferences: store.get('preferences')
       });
-      if (process.env.NODE_ENV === 'development') {
-        mb.window.openDevTools({ mode: 'undocked' });
-      }
     });
     mb.on('hide', () => console.log('MenuBar hidden'));
     mb.window.webContents.once('did-frame-finish-load', () => {
