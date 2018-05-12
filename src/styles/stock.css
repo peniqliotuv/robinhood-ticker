@@ -38,21 +38,30 @@ span {
 
 #title-container>.title {
     font-family: 'Din';
-    font-size: 32px;
+    font-size: 36px;
 }
 
 #title-container>.tooltip {
-    margin-top: 10px;
+    margin-top: 5px;
     color: #e6e4e7;
     font-size: 20px;
 }
 
 #vr {
     width: 1px;
-    background-color: #50a885;
+    background-color: #8c8c8e;
     position: absolute;
     height: 465px;
     top: 132px;
+}
+
+#vr>#time {
+    color: #8c8c8e;
+    position: relative;
+    top: -40px;
+    display: inline-block;
+    width: 70px;
+    left: -29.5px;
 }
 
 .gain>span {

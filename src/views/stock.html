@@ -20,7 +20,11 @@
     <div class=".ct-chart .ct-golden-section" id="chart">
 
     </div>
-    <div id="vr">&nbsp;</div>
+    <div id="vr">&nbsp;
+        <div id="time">
+            &nbsp;
+        </div>
+    </div>
     <script>
         const {
             remote,
@@ -35,6 +39,7 @@
 
         const nodes = [];
         const vr = document.getElementById('vr');
+        const time = document.getElementById('time');
 
         /* Render the chart when the data has come in from ipcMain */
         ipcRenderer.on('data', (event, message) => {
@@ -124,6 +129,7 @@
                     }
                 });
                 tooltip.innerHTML = closestNode.price;
+                time.innerHTML = closestNode.time;
             });
 
             chart.on('draw', (data) => {
