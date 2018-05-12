@@ -6,12 +6,16 @@
     <title>RH Ticker</title>
     <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet">
     <link rel="stylesheet" href="../styles/chartist.min.css">
+    <link rel="stylesheet" href="../styles/chartist-plugin-tooltip.css">
     <link rel="stylesheet" href="../styles/stock.css">
 
 </head>
 
 <body>
     <div id="backdrop">
+    </div>
+
+    <div id="title">
     </div>
     <div class=".ct-chart .ct-golden-section" id="chart">
 
@@ -25,14 +29,16 @@
         require('../utils/chartist-plugin-threshold.min.js');
         require('../utils/chartist-target-line.min.js');
 
-
         ipcRenderer.on('data', (event, message) => {
-            console.log(message);
-            const marketOpen = message[0].marketOpen;
-            const marketClose = message[0].marketClose;
+            const {
+                data,
+                symbol
+            } = message;
+            const marketOpen = data[0].marketOpen;
+            const marketClose = data[0].marketClose;
             const className = marketClose < marketOpen ? 'loss' : 'gain';
             const color = marketClose < marketOpen ? '#e35f3e' : '#50a885';
-            const data = message.map((item) => {
+            const points = data.map((item) => {
                 return {
                     x: item.label,
                     y: item.average,
@@ -42,7 +48,7 @@
             new Chartist.Line('#chart', {
                 series: [{
                     name: 'Stock',
-                    data,
+                    data: points,
                     className,
                 }],
             }, {

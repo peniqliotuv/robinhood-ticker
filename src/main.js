@@ -386,8 +386,6 @@ const createStockWindow = async symbol => {
     return;
   }
 
-  console.log('DATA: ');
-  console.log(data);
   if (stockInfoWindow !== null) {
     stockInfoWindow.destroy();
   }
@@ -410,7 +408,10 @@ const createStockWindow = async symbol => {
   );
 
   stockInfoWindow.webContents.on('did-finish-load', () => {
-    stockInfoWindow.webContents.send('data', data);
+    stockInfoWindow.webContents.send('data', {
+      data,
+      symbol
+    });
   });
 
   stockInfoWindow.on('close', () => {
