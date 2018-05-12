@@ -1,0 +1,53 @@
+@font-face {
+    font-family: 'Din';
+    src: url('../../assets/DIN-Medium.ttf');
+}
+
+@font-face {
+    font-family: 'Din-Light';
+    src: url('../../assets/DIN-Light.ttf');
+}
+
+body {
+    font-family: 'Din-Light', sans-serif;
+    font-weight: 100;
+    user-select: none;
+    background-color: #212025;
+    -webkit-app-region: drag;
+}
+
+#chart {
+    padding: 20px;
+}
+
+span {
+    color: #50a885 !important;
+}
+
+.gain>span {
+    color: #50a885 !important;
+}
+
+.loss>span {
+    color: #e35f3e !important;
+}
+
+.ct-line.ct-threshold-above,
+.ct-point.ct-threshold-above,
+.ct-bar.ct-threshold-above {
+    stroke: #50a885;
+}
+
+.ct-line.ct-threshold-below,
+.ct-point.ct-threshold-below,
+.ct-bar.ct-threshold-below {
+    stroke: #e35f3e;
+}
+
+.ct-area.ct-threshold-above {
+    fill: #50a885;
+}
+
+.ct-area.ct-threshold-below {
+    fill: #e35f3e;
+}

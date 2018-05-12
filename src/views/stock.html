@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>RH Ticker</title>
+    <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet">
+    <link rel="stylesheet" href="../styles/chartist.min.css">
+    <link rel="stylesheet" href="../styles/stock.css">
+
+</head>
+
+<body>
+    <div id="backdrop">
+    </div>
+    <div class=".ct-chart .ct-golden-section" id="chart">
+
+    </div>
+    <script>
+        const {
+            remote,
+            ipcRenderer
+        } = require('electron');
+        const Chartist = require('../utils/chartist.min.js');
+        require('../utils/chartist-plugin-threshold.min.js');
+        require('../utils/chartist-target-line.min.js');
+
+
+        ipcRenderer.on('data', (event, message) => {
+            console.log(message);
+            const marketOpen = message[0].marketOpen;
+            const marketClose = message[0].marketClose;
+            const className = marketClose < marketOpen ? 'loss' : 'gain';
+            const color = marketClose < marketOpen ? '#e35f3e' : '#50a885';
+            const data = message.map((item) => {
+                return {
+                    x: item.label,
+                    y: item.average,
+                };
+            }).filter((point) => point.y >= 0);
+
+            new Chartist.Line('#chart', {
+                series: [{
+                    name: 'Stock',
+                    data,
+                    className,
+                }],
+            }, {
+                fullWidth: true,
+                chartPadding: 20,
+                axisX: {
+                    showGrid: false,
+                },
+                height: '575px',
+                targetLine: {
+                    value: marketOpen,
+                },
+                plugins: [
+                    Chartist.plugins.ctThreshold({
+                        threshold: marketOpen,
+                    }),
+                    Chartist.plugins.ctTargetLine({
+                        value: marketOpen,
+                    }),
+                ]
+            });
+
+
+        });
+    </script>
+</body>
+
+</html>

@@ -50,9 +50,16 @@
         </div>
     </div>
     <script>
-        const { remote, ipcRenderer } = require('electron');
-        const { isAfterHours } = require('../utils/stockHelpers.js');
-        const { removeClass } = require('../utils/domHelpers.js');
+        const {
+            remote,
+            ipcRenderer
+        } = require('electron');
+        const {
+            isAfterHours
+        } = require('../utils/stockHelpers.js');
+        const {
+            removeClass
+        } = require('../utils/domHelpers.js');
         const moment = require('moment-timezone');
 
         const tabContainer = document.getElementsByClassName('tab-container')[0];
@@ -168,15 +175,13 @@
         };
 
         function animate(el, height) {
-            const animation = el.animate([
-                {
-                    transform: `translateY(${height}px)`
-                }
-            ], {
-                    duration: 50,
-                    fill: 'forwards',
-                    easing: 'ease-in',
-                });
+            const animation = el.animate([{
+                transform: `translateY(${height}px)`
+            }], {
+                duration: 50,
+                fill: 'forwards',
+                easing: 'ease-in',
+            });
             animation.direction = height >= 0 ? 'down' : 'up';
             return animation;
         }
@@ -185,8 +190,14 @@
             if (dragObj == null) {
                 return;
             }
-            const { top: boundaryTop } = dragObj.container.getBoundingClientRect();
-            const { top, bottom, height } = dragObj.getBoundingClientRect();
+            const {
+                top: boundaryTop
+            } = dragObj.container.getBoundingClientRect();
+            const {
+                top,
+                bottom,
+                height
+            } = dragObj.getBoundingClientRect();
 
             const y = e.pageY;
             const deltaY = y - dragObj.yGrabPos;
@@ -197,21 +208,29 @@
 
             if (!positionsElements) {
                 positionsElements = Array.from(dragObj.container.childNodes).map(el => {
-                    return { el, animation: null };
+                    return {
+                        el,
+                        animation: null
+                    };
                 });
             }
 
             /* If the dragged object collides with another object, then we swap it with the placeholder */
             positionsElements.forEach((node) => {
-                const { el } = node;
+                const {
+                    el
+                } = node;
                 const rect = el.getBoundingClientRect();
-                if (Math.abs(top - rect.top) <= height && !el.className.includes('placeholder') && el !== dragObj) {
+                if (Math.abs(top - rect.top) <= height && !el.className.includes('placeholder') && el !==
+                    dragObj) {
                     const dy1 = top - rect.bottom;
                     const dy2 = rect.top - bottom;
                     if (Math.abs(dy1) >= (height / 2) && Math.abs(dy1) < height) {
                         /* Need to swap el down*/
                         if (node.animation && node.animation.direction === 'down') {
-                            console.log('Intersected node already has an in-progress animation (down). Returning');
+                            console.log(
+                                'Intersected node already has an in-progress animation (down). Returning'
+                            );
                             return;
                         } else if (node.animation && node.animation.direction === 'up') {
                             if (node.animation.playState === 'finished') {
@@ -232,7 +251,9 @@
                     } else if (Math.abs(dy2) >= (height / 2) && Math.abs(dy2) < height) {
                         /* Need to swap el up*/
                         if (node.animation && node.animation.direction === 'up') {
-                            console.log('Intersected node already has an in-progress animation (up). Returning');
+                            console.log(
+                                'Intersected node already has an in-progress animation (up). Returning'
+                            );
                             return;
                         } else if (node.animation && node.animation.direction === 'down') {
                             if (node.animation.playState === 'finished') {
@@ -293,7 +314,8 @@
             let equityDifference = Number(portfolio.equity) - Number(portfolio.adjusted_equity_previous_close);
             const sign = equityDifference >= 0 ? '+' : '-';
             if (preferences.viewChangeBy === 'percent') {
-                equityDifference = `${sign}${Math.abs(100 * equityDifference / Number(portfolio.adjusted_equity_previous_close)).toFixed(4)}%`;
+                equityDifference =
+                    `${sign}${Math.abs(100 * equityDifference / Number(portfolio.adjusted_equity_previous_close)).toFixed(4)}%`;
             } else {
                 equityDifference = `${sign}$${Math.abs(equityDifference.toFixed(2))}`;
             }
@@ -303,14 +325,20 @@
                 afterHoursEquityDifference = Number(portfolio.extended_hours_equity) - Number(portfolio.equity);
                 const afterHoursSign = afterHoursEquityDifference >= 0 ? '+' : '-';
                 if (preferences.viewChangeBy === 'percent') {
-                    afterHoursEquityDifference = `${afterHoursSign}${Math.abs(100 * afterHoursEquityDifference / Number(portfolio.equity)).toFixed(4)}%`;
+                    afterHoursEquityDifference =
+                        `${afterHoursSign}${Math.abs(100 * afterHoursEquityDifference / Number(portfolio.equity)).toFixed(4)}%`;
                 } else {
                     afterHoursEquityDifference = `${afterHoursSign}$${Math.abs(afterHoursEquityDifference.toFixed(2))}`;
                 }
             }
             const didProfit = sign === '+';
 
-            return { equity, equityDifference, afterHoursEquityDifference, didProfit };
+            return {
+                equity,
+                equityDifference,
+                afterHoursEquityDifference,
+                didProfit
+            };
         }
 
         function isReloading() {
@@ -395,7 +423,12 @@
             document.getElementById('reload').children[0].className = '';
             // loader.parentNode.removeChild(loader);
 
-            const { equity, equityDifference, afterHoursEquityDifference, didProfit } = calculateEquity();
+            const {
+                equity,
+                equityDifference,
+                afterHoursEquityDifference,
+                didProfit
+            } = calculateEquity();
             equityContainer.innerHTML = equity;
             profitContainer.innerHTML = `${equityDifference} ${moment().format('MMM DD, YYYY')}`;
             if (afterHoursEquityDifference) {
