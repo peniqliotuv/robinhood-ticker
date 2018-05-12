@@ -20,6 +20,7 @@
     <div class=".ct-chart .ct-golden-section" id="chart">
 
     </div>
+    <div id="vr">&nbsp;</div>
     <script>
         const {
             remote,
@@ -28,10 +29,13 @@
         const Chartist = require('chartist');
         require('../utils/chartist-plugin-threshold.min.js');
         require('../utils/chartist-target-line.min.js');
-        // require('../utils/chartist-plugin-tooltip.js');
 
         let points;
         let tooltip;
+
+        const nodes = [];
+        const vr = document.getElementById('vr');
+
         /* Render the chart when the data has come in from ipcMain */
         ipcRenderer.on('data', (event, message) => {
             const {
@@ -94,23 +98,50 @@
                 ],
             });
 
+            /* Vertical bar movement */
+            document.addEventListener('mousemove', (e) => {
+
+                const bounds = document.getElementById('chart').getBoundingClientRect();
+                // console.log(bounds, e.pageX, e.pageY);
+                const RIGHT_BOUNDARY = 40;
+                const LEFT_BOUNDARY = 80;
+                const TOP_BOUNDARY = 15;
+                const BOTTOM_BOUNDARY = 50;
+                if (e.pageX < bounds.left + LEFT_BOUNDARY || e.pageX > bounds.right - RIGHT_BOUNDARY ||
+                    e.pageY < bounds.top + TOP_BOUNDARY) {
+                    return;
+                }
+                vr.style.left = `${e.pageX}px`;
+
+                let closestNode = null;
+                let diff = Number.MAX_SAFE_INTEGER;
+                /* Calculate the closest node and update the tooltip price accordingly */
+                nodes.forEach((node) => {
+                    const deltaX = Math.abs(node.boundingRect.left - e.pageX);
+                    if (deltaX < diff) {
+                        diff = deltaX;
+                        closestNode = node;
+                    }
+                });
+                tooltip.innerHTML = closestNode.price;
+            });
+
             chart.on('draw', (data) => {
                 const {
                     x: time,
                     y: price,
                 } = points[data.index];
-                data.element.getNode().addEventListener('mouseover', (e) => {
-                    handleMouseOver(e.pageY, price, time);
+                const node = data.element.getNode();
+
+                nodes.push({
+                    price,
+                    time,
+                    boundingRect: node.getBoundingClientRect(),
                 });
             });
 
 
         });
-
-        function handleMouseOver(pageY, price, time) {
-            console.log('in handle mouse over');
-            tooltip.innerHTML = price;
-        }
     </script>
 </body>
 
