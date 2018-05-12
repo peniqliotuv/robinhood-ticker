@@ -14,14 +14,37 @@ body {
     user-select: none;
     background-color: #212025;
     -webkit-app-region: drag;
+    overflow-y: hidden;
 }
 
 #chart {
-    padding: 20px;
+    padding: 0px 20px;
 }
 
 span {
-    color: #50a885 !important;
+    color: white !important;
+    font-size: 14px !important;
+}
+
+#title-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    height: 13.5vh;
+    color: white;
+    padding: 10px 35px
+}
+
+#title-container>.title {
+    font-family: 'Din';
+    font-size: 24px;
+}
+
+#title-container>.tooltip {
+    margin-top: 10px;
+    color: #e6e4e7;
+    font-size: 16px;
 }
 
 .gain>span {
@@ -50,4 +73,12 @@ span {
 
 .ct-area.ct-threshold-below {
     fill: #e35f3e;
+}
+
+.stock-tooltip.chartist-tooltip {
+    background-color: #50a885;
+}
+
+.stock-tooltip.chartist-tooltip::before {
+    background-color: #50a885;
 }

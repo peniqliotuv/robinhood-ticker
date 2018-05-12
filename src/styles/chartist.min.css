@@ -181,11 +181,11 @@
     stroke-dasharray: 2px
 }
 
-/*
 .ct-point {
-    stroke-width: 10px;
-    stroke-linecap: round
-} */
+    stroke-width: 15px;
+    stroke-linecap: round;
+    stroke-opacity: 0;
+}
 
 .ct-line {
     stroke-width: 1.25px

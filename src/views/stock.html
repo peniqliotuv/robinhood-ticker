@@ -15,7 +15,7 @@
     <div id="backdrop">
     </div>
 
-    <div id="title">
+    <div id="title-container">
     </div>
     <div class=".ct-chart .ct-golden-section" id="chart">
 
@@ -25,31 +25,54 @@
             remote,
             ipcRenderer
         } = require('electron');
-        const Chartist = require('../utils/chartist.min.js');
+        const Chartist = require('chartist');
         require('../utils/chartist-plugin-threshold.min.js');
         require('../utils/chartist-target-line.min.js');
+        // require('../utils/chartist-plugin-tooltip.js');
 
+        let points;
+        let tooltip;
+        /* Render the chart when the data has come in from ipcMain */
         ipcRenderer.on('data', (event, message) => {
             const {
                 data,
-                symbol
+                symbol,
+                price,
             } = message;
             const marketOpen = data[0].marketOpen;
             const marketClose = data[0].marketClose;
             const className = marketClose < marketOpen ? 'loss' : 'gain';
             const color = marketClose < marketOpen ? '#e35f3e' : '#50a885';
-            const points = data.map((item) => {
+            points = data.map((item) => {
                 return {
                     x: item.label,
                     y: item.average,
                 };
             }).filter((point) => point.y >= 0);
 
-            new Chartist.Line('#chart', {
+            const container = document.getElementById('title-container');
+
+            // document.getElementById('title').innerHTML = symbol;
+            const title = document.createElement('div');
+            title.className = 'title';
+            title.innerHTML = symbol;
+
+            container.appendChild(title);
+
+            tooltip = document.createElement('div');
+            tooltip.className = 'tooltip';
+            tooltip.innerHTML = price;
+
+            container.appendChild(tooltip);
+
+
+            const labels = points.map((point) => point.y);
+            const chart = new Chartist.Line('#chart', {
                 series: [{
-                    name: 'Stock',
+                    name: symbol,
                     data: points,
                     className,
+                    labels,
                 }],
             }, {
                 fullWidth: true,
@@ -57,7 +80,7 @@
                 axisX: {
                     showGrid: false,
                 },
-                height: '575px',
+                height: '535px',
                 targetLine: {
                     value: marketOpen,
                 },
@@ -68,11 +91,26 @@
                     Chartist.plugins.ctTargetLine({
                         value: marketOpen,
                     }),
-                ]
+                ],
+            });
+
+            chart.on('draw', (data) => {
+                const {
+                    x: time,
+                    y: price,
+                } = points[data.index];
+                data.element.getNode().addEventListener('mouseover', (e) => {
+                    handleMouseOver(e.pageY, price, time);
+                });
             });
 
 
         });
+
+        function handleMouseOver(pageY, price, time) {
+            console.log('in handle mouse over');
+            tooltip.innerHTML = price;
+        }
     </script>
 </body>
 

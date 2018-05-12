@@ -29,7 +29,6 @@ class StockAPI {
       const res = await fetch(`${this.HOST}/stock/${symbol}/chart/1d/`);
       const json = await res.json();
       /* Transform into [{x: ... y: ...}, {}]*/
-      console.log(json);
       return json;
     } catch (e) {
       console.error(e);

@@ -72,7 +72,6 @@ ipcMain.on('data', (event, arg) => {
       height: 500,
       tray,
       resizable: false,
-      alwaysOnTop: true,
       webPreferences: {
         experimentalFeatures: true
       }
@@ -379,6 +378,8 @@ const createLoginMenu = () => {
 
 const createStockWindow = async symbol => {
   let data;
+  const position = RobinHoodAPI._positions.filter((position) => position.symbol === symbol)[0];
+  const price = position.quote.last_trade_price;
   try {
     data = await StockAPI.getSMA(symbol);
   } catch (e) {
@@ -391,7 +392,7 @@ const createStockWindow = async symbol => {
   }
   stockInfoWindow = new BrowserWindow({
     width: 825,
-    height: 600,
+    height: 625,
     backgroundColor: '#212025',
     center: true,
     title: symbol,
@@ -410,7 +411,8 @@ const createStockWindow = async symbol => {
   stockInfoWindow.webContents.on('did-finish-load', () => {
     stockInfoWindow.webContents.send('data', {
       data,
-      symbol
+      symbol,
+      price,
     });
   });
 
@@ -517,7 +519,6 @@ const initializeApp = () => {
       width: 250,
       height: 500,
       tray,
-      alwaysOnTop: true,
       resizable: false,
       webPreferences: {
         experimentalFeatures: true
