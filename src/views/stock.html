@@ -37,7 +37,8 @@
         let points;
         let tooltip;
 
-        const nodes = [];
+        /* K: time (ex: 11:01AM) V: { price, boundingRect of node } */
+        const nodes = new Map();
         const vr = document.getElementById('vr');
         const time = document.getElementById('time');
 
@@ -58,6 +59,7 @@
                     y: item.average,
                 };
             }).filter((point) => point.y >= 0);
+            console.log(points);
 
             const container = document.getElementById('title-container');
 
@@ -75,7 +77,7 @@
             container.appendChild(tooltip);
 
 
-            const labels = points.map((point) => point.y);
+            const labels = points.map((point) => point.x);
             const chart = new Chartist.Line('#chart', {
                 series: [{
                     name: symbol,
@@ -118,18 +120,21 @@
                 }
                 vr.style.left = `${e.pageX}px`;
 
-                let closestNode = null;
+                let closestTime = null;
+                let closestPrice = null;
                 let diff = Number.MAX_SAFE_INTEGER;
+
                 /* Calculate the closest node and update the tooltip price accordingly */
-                nodes.forEach((node) => {
+                nodes.forEach((node, time) => {
                     const deltaX = Math.abs(node.boundingRect.left - e.pageX);
                     if (deltaX < diff) {
                         diff = deltaX;
-                        closestNode = node;
+                        closestTime = time;
+                        closestPrice = node.price;
                     }
                 });
-                tooltip.innerHTML = closestNode.price;
-                time.innerHTML = closestNode.time;
+                tooltip.innerHTML = closestPrice;
+                time.innerHTML = closestTime;
             });
 
             chart.on('draw', (data) => {
@@ -139,10 +144,9 @@
                 } = points[data.index];
                 const node = data.element.getNode();
 
-                nodes.push({
+                nodes.set(time, {
                     price,
-                    time,
-                    boundingRect: node.getBoundingClientRect(),
+                    boundingRect: node.getBoundingClientRect()
                 });
             });
 

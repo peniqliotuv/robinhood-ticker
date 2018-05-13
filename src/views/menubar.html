@@ -81,11 +81,16 @@
         let positionsElements = null;
         const placeholder = document.createElement('div');
 
+
+        let longPressTimeout = null;
+
+        let longPressTimeoutExpired = false;
         /* Grab a reference to the parent container of each <div> so that offset can be
         correctly calculated*/
         function draggable(obj, container) {
             obj.addEventListener('long-press', (e) => {
                 e.preventDefault();
+                longPressTimeoutExpired = true;
                 if (isReloading()) {
                     return;
                 }
@@ -120,8 +125,12 @@
             })
 
             obj.onmousedown = function (e) {
+                longPressTimeoutExpired = false;
+            }
+
+            obj.onmouseup = function (e) {
                 /* Send a message to the main process to open the stock info window */
-                if (e.which === 1) {
+                if (e.which === 1 && !longPressTimeoutExpired) {
                     const symbol = obj.childNodes[0].childNodes[0].childNodes[0].innerHTML;
                     ipcRenderer.send('chart', symbol);
                 }
