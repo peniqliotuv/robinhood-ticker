@@ -52,7 +52,10 @@ class RobinHoodAPI {
   }
 
   async getAccountNumber() {
-    const { token, accountNumber } = this;
+    const {
+      token,
+      accountNumber
+    } = this;
     if (!token) {
       throw new Error('Token must be non-null');
     }
@@ -85,25 +88,25 @@ class RobinHoodAPI {
           const json = await res.json();
           const transformed = await Promise.all(
             json.results
-              .filter(result => Number(result.quantity) !== 0)
-              .map(async result => {
-                const instrument = await (await fetch(
-                  decodeURIComponent(result.instrument)
-                )).json();
-                const quote = await (await fetch(
-                  decodeURIComponent(instrument.quote)
-                )).json();
-                return {
-                  averageBuyPrice: result.average_buy_price,
-                  instrument: result.instrument,
-                  quantity: Number(result.quantity),
-                  quote: quote,
-                  currentPrice: quote.last_traded_price,
-                  symbol: instrument.symbol,
-                  name: instrument.name,
-                  instrument: instrument
-                };
-              })
+            .filter(result => Number(result.quantity) !== 0)
+            .map(async result => {
+              const instrument = await (await fetch(
+                decodeURIComponent(result.instrument)
+              )).json();
+              const quote = await (await fetch(
+                decodeURIComponent(instrument.quote)
+              )).json();
+              return {
+                averageBuyPrice: result.average_buy_price,
+                instrument: result.instrument,
+                quantity: Number(result.quantity),
+                quote: quote,
+                currentPrice: quote.last_traded_price,
+                symbol: instrument.symbol,
+                name: instrument.name,
+                instrument: instrument
+              };
+            })
           );
           return transformed;
         }
@@ -156,7 +159,11 @@ class RobinHoodAPI {
       const res = await fetch('https://api.robinhood.com/api-token-auth/', {
         method: 'POST',
         Accept: 'application/json',
-        body: JSON.stringify({ username, password, mfa_code })
+        body: JSON.stringify({
+          username,
+          password,
+          mfa_code
+        })
       });
       const json = await res.json();
       if (res.ok) {
@@ -186,6 +193,4 @@ class RobinHoodAPI {
 
 let data = new RobinHoodAPI();
 
-// module.exports = data;
-
-export default data;
+module.exports = data;
