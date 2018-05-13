@@ -53,6 +53,7 @@ span {
     position: absolute;
     height: 465px;
     top: 132px;
+    visibility: hidden;
 }
 
 #vr>#time {

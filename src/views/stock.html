@@ -36,6 +36,7 @@
 
         let points;
         let tooltip;
+        let currentPrice;
 
         /* K: time (ex: 11:01AM) V: { price, boundingRect of node } */
         const nodes = new Map();
@@ -49,6 +50,7 @@
                 symbol,
                 price,
             } = message;
+            currentPrice = Number(price).toFixed(2);
             const marketOpen = data[0].marketOpen;
             const marketClose = data[0].marketClose;
             const className = marketClose < marketOpen ? 'loss' : 'gain';
@@ -56,7 +58,7 @@
             points = data.map((item) => {
                 return {
                     x: item.label,
-                    y: item.average,
+                    y: Number(item.average).toFixed(2),
                 };
             }).filter((point) => point.y >= 0);
             console.log(points);
@@ -116,8 +118,13 @@
                 const BOTTOM_BOUNDARY = 50;
                 if (e.pageX < bounds.left + LEFT_BOUNDARY || e.pageX > bounds.right - RIGHT_BOUNDARY ||
                     e.pageY < bounds.top + TOP_BOUNDARY) {
+                    tooltip.innerHTML = currentPrice;
+                    vr.style.visibility = 'hidden';
+                    time.style.visibility = 'hidden';
                     return;
                 }
+                vr.style.visibility = 'visible';
+                time.style.visibility = 'visible';
                 vr.style.left = `${e.pageX}px`;
 
                 let closestTime = null;

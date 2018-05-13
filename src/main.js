@@ -109,8 +109,13 @@ ipcMain.on('open-preferences', (event, symbol) => {
   createPreferencesWindow();
 });
 
-ipcMain.on('chart', (event, symbol) => {
-  createStockWindow(symbol);
+ipcMain.on('chart', (event, data) => {
+  const {
+    symbol,
+    tabIndex,
+  } = data;
+  console.log(data);
+  createStockWindow(symbol, tabIndex);
 });
 
 ipcMain.on('logout', async (event, arg) => {
@@ -376,10 +381,17 @@ const createLoginMenu = () => {
   return Menu.buildFromTemplate(template);
 };
 
-const createStockWindow = async symbol => {
+const createStockWindow = async (symbol, tabIndex) => {
   let data;
-  const position = RobinHoodAPI._positions.filter((position) => position.symbol === symbol)[0];
-  const price = position.quote.last_trade_price;
+  let price;
+  if (tabIndex === 0) {
+    const position = RobinHoodAPI._positions.filter((quote) => quote.symbol === symbol)[0];
+    price = position.quote.last_trade_price;
+  } else if (tabIndex === 1) {
+    const watchlist = RobinHoodAPI._watchlist.filter((quote) => quote.symbol === symbol)[0];
+    price = watchlist.last_trade_price;
+  }
+
   try {
     data = await StockAPI.getSMA(symbol);
   } catch (e) {
@@ -520,6 +532,7 @@ const initializeApp = () => {
       height: 500,
       tray,
       resizable: false,
+      alwaysOnTop: true,
       webPreferences: {
         experimentalFeatures: true
       }

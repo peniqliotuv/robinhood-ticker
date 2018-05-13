@@ -116,23 +116,33 @@
                 const newTop = oldTop - dragObj.offsetHeight - dragObj.container.scrollTop;
                 dragObj.style.top = `${newTop}px`;
 
+
                 /* Make it obvious that the stock elements are re-orderable */
-                positionsContainer.childNodes.forEach((el) => {
+                const currContainer = tabIndex === 0 ? positionsContainer : watchlistContainer;
+                currContainer.childNodes.forEach((el) => {
                     if (!el.classList.contains('placeholder')) {
                         el.childNodes[0].classList.add('movable');
                     }
                 });
+
+
             })
 
             obj.onmousedown = function (e) {
+                console.log('MOUSEDOWN');
                 longPressTimeoutExpired = false;
             }
 
             obj.onmouseup = function (e) {
                 /* Send a message to the main process to open the stock info window */
+                console.log('MOUSEUP', e.which, longPressTimeoutExpired);
                 if (e.which === 1 && !longPressTimeoutExpired) {
                     const symbol = obj.childNodes[0].childNodes[0].childNodes[0].innerHTML;
-                    ipcRenderer.send('chart', symbol);
+                    console.log(symbol);
+                    ipcRenderer.send('chart', {
+                        symbol,
+                        tabIndex,
+                    });
                 }
             }
         }
@@ -160,7 +170,7 @@
                         sortedPositions[index] = position;
                     });
                     positionsIndices = sortedPositions.map((position) => position.symbol);
-                    console.log(positionsIndices);
+                    // console.log(positionsIndices);
                     data._positions = sortedPositions;
                 } else if (tabIndex === 1) {
                     const sortedWatchlist = new Array(data._watchlist.length);
@@ -169,7 +179,7 @@
                         sortedWatchlist[index] = watchlist;
                     });
                     watchlistIndices = sortedWatchlist.map((watchlist) => watchlist.symbol);
-                    console.log(watchlistIndices);
+                    // console.log(watchlistIndices);
                     data._watchlist = sortedWatchlist;
                 }
 
