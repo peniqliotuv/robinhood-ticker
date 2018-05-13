@@ -1,5 +1,4 @@
 class RobinHoodAPI {
-
   constructor() {
     if (!RobinHoodAPI.instance) {
       this._token = '';
@@ -60,7 +59,7 @@ class RobinHoodAPI {
     if (!accountNumber) {
       try {
         const res = await fetch('https://api.robinhood.com/accounts/', {
-          Authorization: `Token ${token}`,
+          Authorization: `Token ${token}`
         });
         if (res.ok) {
           const json = await res.json();
@@ -79,25 +78,33 @@ class RobinHoodAPI {
       throw new Error('No account number provided');
     } else {
       try {
-        const res = await fetch(`https://api.robinhood.com/accounts/${this.accountNumber}/positions/`);
+        const res = await fetch(
+          `https://api.robinhood.com/accounts/${this.accountNumber}/positions/`
+        );
         if (res.ok) {
           const json = await res.json();
-          const transformed = await Promise.all(json.results
-            .filter((result) => Number(result.quantity) !== 0)
-            .map(async (result) => {
-              const instrument = await(await fetch(decodeURIComponent(result.instrument))).json();
-              const quote = await(await fetch(decodeURIComponent(instrument.quote))).json();
-              return {
-                averageBuyPrice: result.average_buy_price,
-                instrument: result.instrument,
-                quantity: Number(result.quantity),
-                quote: quote,
-                currentPrice: quote.last_traded_price,
-                symbol: instrument.symbol,
-                name: instrument.name,
-                instrument: instrument,
-              }
-            }));
+          const transformed = await Promise.all(
+            json.results
+              .filter(result => Number(result.quantity) !== 0)
+              .map(async result => {
+                const instrument = await (await fetch(
+                  decodeURIComponent(result.instrument)
+                )).json();
+                const quote = await (await fetch(
+                  decodeURIComponent(instrument.quote)
+                )).json();
+                return {
+                  averageBuyPrice: result.average_buy_price,
+                  instrument: result.instrument,
+                  quantity: Number(result.quantity),
+                  quote: quote,
+                  currentPrice: quote.last_traded_price,
+                  symbol: instrument.symbol,
+                  name: instrument.name,
+                  instrument: instrument
+                };
+              })
+          );
           return transformed;
         }
       } catch (e) {
@@ -109,7 +116,9 @@ class RobinHoodAPI {
 
   async getPortfolio() {
     try {
-      const res = await fetch(`https://api.robinhood.com/accounts/${this.accountNumber}/portfolio/`);
+      const res = await fetch(
+        `https://api.robinhood.com/accounts/${this.accountNumber}/portfolio/`
+      );
       if (res.ok) {
         return await res.json();
       } else {
@@ -126,10 +135,16 @@ class RobinHoodAPI {
       const res = await fetch('https://api.robinhood.com/watchlists/Default/');
       const json = await res.json();
       if (res.ok) {
-        return await Promise.all(json.results.map(async (result) => {
-          const instrument = await(await fetch(decodeURIComponent(result.instrument))).json();
-          return await(await fetch(decodeURIComponent(instrument.quote))).json();
-        }));
+        return await Promise.all(
+          json.results.map(async result => {
+            const instrument = await (await fetch(
+              decodeURIComponent(result.instrument)
+            )).json();
+            return await (await fetch(
+              decodeURIComponent(instrument.quote)
+            )).json();
+          })
+        );
       }
     } catch (e) {
       console.error(e.stack, e);
@@ -141,14 +156,14 @@ class RobinHoodAPI {
       const res = await fetch('https://api.robinhood.com/api-token-auth/', {
         method: 'POST',
         Accept: 'application/json',
-        body: JSON.stringify({ username, password, mfa_code }),
+        body: JSON.stringify({ username, password, mfa_code })
       });
       const json = await res.json();
       if (res.ok) {
         return {
           success: true,
           twoFactorAuthRequired: Boolean(json.mfa_required),
-          token: json.token || null,
+          token: json.token || null
         };
       } else {
         // Get the error message from RobinHood and re-throw it
@@ -163,7 +178,7 @@ class RobinHoodAPI {
     } catch (error) {
       return {
         success: false,
-        error: error.message,
+        error: error.message
       };
     }
   }
@@ -171,4 +186,6 @@ class RobinHoodAPI {
 
 let data = new RobinHoodAPI();
 
-module.exports = data;
+// module.exports = data;
+
+export default data;

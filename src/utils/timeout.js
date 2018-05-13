@@ -8,7 +8,6 @@ class TimeoutError extends Error {
   }
 }
 
-
 function timeout(ms = 5000, promise) {
   return new Promise((resolve, reject) => {
     setTimeout(() => {

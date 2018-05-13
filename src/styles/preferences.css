@@ -1,13 +1,12 @@
 @font-face {
     font-family: 'Din';
-    src: url('../assets/DIN-Medium.ttf');
+    src: url('../../assets/DIN-Medium.ttf');
 }
 
 @font-face {
     font-family: 'Din-Light';
-    src:  url('../assets/DIN-Light.ttf');
+    src: url('../../assets/DIN-Light.ttf');
 }
-
 
 body {
     display: flex;
@@ -16,12 +15,14 @@ body {
     font-family: 'Din-Light', sans-serif;
     font-weight: 100;
     user-select: none;
-    background-color:  #212025;
+    background-color: #212025;
     -webkit-app-region: drag;
 }
+
 /* Needed so button is not draggable */
+
 button {
-  -webkit-app-region: no-drag;
+    -webkit-app-region: no-drag;
 }
 
 input {
@@ -35,58 +36,64 @@ input {
     width: 100%;
     margin-top: 20px;
     align-items: center;
-    flex-direction: column
+    flex-direction: column;
 }
 
-.mui-btn, .mui-btn:hover {
+.mui-btn,
+.mui-btn:hover {
     display: flex;
     justify-content: center;
     align-items: center;
     border-radius: 2px;
     height: 40px;
     width: 200px;
-    margin-left: 0!important;
-    color:  white!important;
-    background-color:  #61CA9D!important;
+    margin-left: 0 !important;
+    color: white !important;
+    background-color: #61ca9d !important;
 }
 
 .mui-btn:hover {
-    background-color:  #50A885!important;
+    background-color: #50a885 !important;
 }
 
 /* UGH */
-#logout, #quit {
-    background-color: #E35F3E!important;
+
+#logout,
+#quit {
+    background-color: #e35f3e !important;
 }
 
-#logout:hover, #quit:hover {
-    background-color: #CC5537!important;
+#logout:hover,
+#quit:hover {
+    background-color: #cc5537 !important;
 }
 
 .mui-btn:active {
-    color:  white!important;
-    background-color: #529B80!important;
+    color: white !important;
+    background-color: #529b80 !important;
 }
 
 .mui-select {
     width: 80%;
 }
 
-.mui-select > select, .mui-select > label {
-    color: #E6E4E7;
+.mui-select>select,
+.mui-select>label {
+    color: #e6e4e7;
 }
 
-.mui-select:focus > select {
-    border-color: #529B80;
+.mui-select:focus>select {
+    border-color: #529b80;
 }
 
-.mui-select:focus>label, .mui-select>select:focus~label {
-    color: #529B80;
+.mui-select:focus>label,
+.mui-select>select:focus~label {
+    color: #529b80;
 }
 
 .button-container {
-  display: flex;
-  flex-direction: column;
+    display: flex;
+    flex-direction: column;
 }
 
 #backdrop {
@@ -96,5 +103,5 @@ input {
     width: 100vw;
     border-radius: 0 0 2px 2px;
     top: 60px;
-    z-index: -1
+    z-index: -1;
 }
