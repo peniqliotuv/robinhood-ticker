@@ -32,12 +32,11 @@ const ICON_LOGO = path.join(__dirname, '../assets/logo-16.png');
 
 const TIMEOUT_MS = 5000;
 console.log(`APP START: NODE_ENV: ${process.env.NODE_ENV}`);
-require('electron-debug')();
 if (process.env.NODE_ENV === 'development') {
   require('electron-reload')(__dirname, {
     electron: require(path.join(__dirname, '../node_modules/electron'))
   });
-  // require('electron-debug')();
+  require('electron-debug')();
 }
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
