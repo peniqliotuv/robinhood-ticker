@@ -46,7 +46,7 @@ Chart view
 
 MacOS only currently
 
-Latest Release: https://github.com/peniqliotuv/robinhood-ticker/releases/tag/v2.2.0
+Latest Release: https://github.com/peniqliotuv/robinhood-ticker/releases/tag/v2.3.0
 
 ## Built With
 
