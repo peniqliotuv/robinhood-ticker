@@ -306,8 +306,11 @@
             spinner.classList.add('reloading');
             if (Number(data._portfolio.equity) - Number(data._portfolio.adjusted_equity_previous_close) < 0) {
                 loader.classList.add('equity-loss');
+            } else if (loader.classList.contains('equity-loss')) {
+                loader.classList.remove('equity-loss');
             }
-            removeClass(loader, 'equity-loss');
+
+
             positionsContainer.childNodes.forEach((el) => {
                 el.classList.add('blur');
             });
@@ -484,8 +487,10 @@
                 const sign = difference >= 0 ? '+' : '-';
                 if (preferences.viewChangeBy === 'percent') {
                     difference = `${sign}${Math.abs(100 * difference / Number(oldPrice)).toFixed(4)}%`
-                } else {
+                } else if (preferences.viewChangeBy === 'gain/loss') {
                     difference = `${sign}$${Math.abs(difference.toFixed(2))}`;
+                } else {
+                    difference = `${sign}$${Math.abs((data.quantity * difference).toFixed(2))}`;
                 }
 
                 const container = document.createElement('div');

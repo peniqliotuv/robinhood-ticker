@@ -29,7 +29,8 @@
         <div class="mui-select">
             <select id="select-change">
                 <option value="percent">Percent Change</option>
-                <option value="gain/loss">Gain/Loss</option>
+                <option value="gain/loss">Individual Gain/Loss</option>
+                <option value="total-gain/loss">Total Gain/Loss</option>
             </select>
             <label>View Change By</label>
         </div>
@@ -44,7 +45,10 @@
 
 
     <script>
-        const { remote, ipcRenderer } = require('electron');
+        const {
+            remote,
+            ipcRenderer
+        } = require('electron');
 
         const selectRefresh = document.getElementById('select-refresh');
         const selectChange = document.getElementById('select-change');
@@ -57,7 +61,11 @@
         }
 
         ipcRenderer.on('preferences', (event, message) => {
-            const { refreshRate, viewChangeBy, viewEquityBy } = message;
+            const {
+                refreshRate,
+                viewChangeBy,
+                viewEquityBy
+            } = message;
             document.getElementById('preferences-form').style.visibility = "visible";
             for (let i = 0; i < selectRefresh.options.length; ++i) {
                 if (selectRefresh.options[i].value == refreshRate) {
@@ -76,7 +84,10 @@
         function submit() {
             const refreshRate = selectRefresh.value;
             const viewChangeBy = selectChange.value;
-            ipcRenderer.send('preferences-saved', { refreshRate, viewChangeBy });
+            ipcRenderer.send('preferences-saved', {
+                refreshRate,
+                viewChangeBy
+            });
             window.close();
         }
 
