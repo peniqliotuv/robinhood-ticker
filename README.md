@@ -39,7 +39,7 @@ Authenticating with Robinhood
 <p align="center"><img  src="https://puu.sh/znHko/63dd942490.png"  height="350px"/></p>
 
 Chart view
-<img src="https://giphy.com/embed/836KLcR5aQBaowYL6p" width="480" height="352" />
+<img src="https://media.giphy.com/media/836KLcR5aQBaowYL6p/giphy.gif" width="480" height="352" />
 
 ## Releases
 
