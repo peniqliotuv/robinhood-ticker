@@ -2,12 +2,16 @@ const os = require('os');
 const log = require('electron-log');
 log.transports.file.format = '{h}:{i}:{s}:{ms} {text}';
 log.transports.file.level = 'info';
-const { app, autoUpdater, dialog } = require('electron');
+const {
+  app,
+  autoUpdater,
+  dialog
+} = require('electron');
 const version = app.getVersion();
 const platform = os.platform() + '_' + os.arch(); // usually returns darwin_64
 const updaterFeedURL = `https://rh-ticker-deploy-server.herokuapp.com/update/${platform}/${version}`;
 
-export function appUpdater() {
+function appUpdater() {
   if (process.env.NODE_ENV === 'development') {
     return;
   }
@@ -39,8 +43,7 @@ export function appUpdater() {
       });
     }
     // Ask user to update the app
-    dialog.showMessageBox(
-      {
+    dialog.showMessageBox({
         type: 'question',
         buttons: ['Install and Relaunch', 'Later'],
         defaultId: 0,
@@ -58,6 +61,6 @@ export function appUpdater() {
   autoUpdater.checkForUpdates();
 }
 
-// exports = module.exports = {
-//   appUpdater
-// };
+exports = module.exports = {
+  appUpdater
+};

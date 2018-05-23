@@ -1,5 +1,5 @@
-import queryString from 'query-string';
-import fetch from 'node-fetch';
+const queryString = require('query-string');
+const fetch = require('node-fetch');
 
 class StockAPI {
   constructor() {
@@ -16,15 +16,6 @@ class StockAPI {
 
   /* Gets the simple moving average of a stock */
   static async getSMA(symbol) {
-    // const query = {
-    //   apikey: this.API_KEY,
-    //   function: 'SMA',
-    //   symbol,
-    //   interval: '15min',
-    //   series_type: 'close',
-    //   time_period: 10
-    // };
-    // const qs = queryString.stringify(query);
     try {
       const res = await fetch(`${this.HOST}/stock/${symbol}/chart/1d/`);
       const json = await res.json();
@@ -38,4 +29,4 @@ class StockAPI {
   }
 }
 
-export default StockAPI;
+module.exports = StockAPI;

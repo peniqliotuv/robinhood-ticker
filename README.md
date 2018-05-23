@@ -36,13 +36,10 @@ Support for windows is currently in progress.
 
 Authenticating with Robinhood
 
-<p  align="center"><img  src="https://puu.sh/znHko/63dd942490.png"  height="350px"/></p>
+<p align="center"><img  src="https://puu.sh/znHko/63dd942490.png"  height="350px"/></p>
 
 Chart view
-
-<div align="center">
-<iframe src="https://giphy.com/embed/836KLcR5aQBaowYL6p" width="480" height="352" frameBorder="0" class="giphy-embed" allowFullScreen></iframe><p><a href="https://giphy.com/gifs/rh-ticker-836KLcR5aQBaowYL6p"></a></p>
-</div>
+<img src="https://giphy.com/embed/836KLcR5aQBaowYL6p" width="480" height="352" />
 
 ## Releases
 

@@ -1,5 +1,5 @@
-import 'babel-polyfill';
-import {
+require('babel-polyfill');
+const {
   app,
   BrowserWindow,
   Tray,
@@ -7,23 +7,23 @@ import {
   session,
   ipcMain,
   dialog
-} from 'electron';
-import AutoLaunch from 'auto-launch';
-import fetch from 'node-fetch';
-import path from 'path';
-import url from 'url';
-import openAboutWindow from 'about-window';
-import menubar from 'menubar';
-import {
+} = require('electron');
+const AutoLaunch = require('auto-launch');
+const fetch = require('node-fetch');
+const path = require('path');
+const url = require('url');
+const openAboutWindow = require('about-window');
+const menubar = require('menubar');
+const {
   appUpdater
-} from './app-updater';
-import log from 'electron-log';
-import {
+} = require('./app-updater');
+const log = require('electron-log');
+const {
   timeout,
   TimeoutError
-} from './utils/timeout.js';
-import Store from 'electron-store';
-import StockAPI from './StockAPI';
+} = require('./utils/timeout.js');
+const Store = require('electron-store');
+const StockAPI = require('./StockAPI');
 
 const store = new Store();
 
@@ -36,7 +36,9 @@ if (process.env.NODE_ENV === 'development') {
   require('electron-reload')(__dirname, {
     electron: require(path.join(__dirname, '../node_modules/electron'))
   });
-  require('electron-debug')();
+  require('electron-debug')({
+    showDevTools: 'undocked'
+  });
 }
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -111,7 +113,7 @@ ipcMain.on('open-preferences', (event, symbol) => {
 ipcMain.on('chart', (event, data) => {
   const {
     symbol,
-    tabIndex,
+    tabIndex
   } = data;
   console.log(data);
   createStockWindow(symbol, tabIndex);
@@ -345,7 +347,7 @@ const createLoginWindow = () => {
     title: 'RobinHood Ticker',
     resizable: false,
     titleBarStyle: 'hidden',
-    show: false,
+    show: false
   });
 };
 
@@ -384,10 +386,14 @@ const createStockWindow = async (symbol, tabIndex) => {
   let data;
   let price;
   if (tabIndex === 0) {
-    const position = RobinHoodAPI._positions.filter((quote) => quote.symbol === symbol)[0];
+    const position = RobinHoodAPI._positions.filter(
+      quote => quote.symbol === symbol
+    )[0];
     price = position.quote.last_trade_price;
   } else if (tabIndex === 1) {
-    const watchlist = RobinHoodAPI._watchlist.filter((quote) => quote.symbol === symbol)[0];
+    const watchlist = RobinHoodAPI._watchlist.filter(
+      quote => quote.symbol === symbol
+    )[0];
     price = watchlist.last_trade_price;
   }
 
@@ -409,7 +415,7 @@ const createStockWindow = async (symbol, tabIndex) => {
     title: symbol,
     resizable: false,
     titleBarStyle: 'hidden',
-    show: true,
+    show: true
   });
   stockInfoWindow.loadURL(
     url.format({
@@ -423,7 +429,7 @@ const createStockWindow = async (symbol, tabIndex) => {
     stockInfoWindow.webContents.send('data', {
       data,
       symbol,
-      price,
+      price
     });
   });
 
@@ -531,7 +537,7 @@ const initializeApp = () => {
       height: 500,
       tray,
       resizable: false,
-      alwaysOnTop: true,
+      alwaysOnTop: process.env.NODE_ENV === 'development',
       webPreferences: {
         experimentalFeatures: true
       }
