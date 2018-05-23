@@ -10,7 +10,7 @@ Easily track the performance of your Robinhood stock portfolio just by glancing 
 
 ## Getting Started
 
-The latest release for MacOS is version 2.2.0: https://github.com/peniqliotuv/robinhood-ticker/releases/tag/v2.2.0
+The latest release for MacOS is version 2.3.0: https://github.com/peniqliotuv/robinhood-ticker/releases/tag/v2.3.0
 
 Support for windows is currently in progress.
 
