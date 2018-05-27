@@ -451,8 +451,8 @@ const createPreferencesWindow = () => {
   }
 
   preferences = new BrowserWindow({
-    height: 400,
-    width: 275,
+    height: 470,
+    width: 250,
     resizable: false,
     backgroundColor: '#212025',
     titleBarStyle: 'hidden'

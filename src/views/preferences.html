@@ -34,6 +34,11 @@
             </select>
             <label>View Change By</label>
         </div>
+        <div class="mui-divider"></div>
+        <div class="mui-textfield">
+            <input id="input-percent" type="text" placeholder="2%" value="2%" pattern="[0-9]" onkeypress="return isValid(event)">
+            <label>Notify me if a prices moves by...</label>
+        </div>
         <div class="button-container">
             <button type="button" onclick="submit()" class="mui-btn mui-btn--raised">Submit</button>
             <button type="button" onclick="about()" class="mui-btn mui-btn--raised">About RH Ticker</button>
@@ -53,6 +58,7 @@
         const selectRefresh = document.getElementById('select-refresh');
         const selectChange = document.getElementById('select-change');
         const selectEquity = document.getElementById('select-equity');
+        const inputPercent = document.getElementById('input-percent');
 
         document.onkeydown = (event) => {
             if (event.keyCode === 27) {
@@ -84,9 +90,11 @@
         function submit() {
             const refreshRate = selectRefresh.value;
             const viewChangeBy = selectChange.value;
+            const percent = inputPercent.value.substring(0, inputPercent.value.length - 1);
             ipcRenderer.send('preferences-saved', {
                 refreshRate,
-                viewChangeBy
+                viewChangeBy,
+                percent,
             });
             window.close();
         }
@@ -101,6 +109,15 @@
 
         function about() {
             ipcRenderer.send('show-about', true);
+        }
+
+        function isValid(evt) {
+            const charCode = (evt.which) ? evt.which : event.keyCode;
+            if (charCode != 37 && charCode != 46 && charCode > 31 && (charCode <
+                    48 || charCode > 57)) {
+                return false;
+            }
+            return true;
         }
 
         // You can also require other files to run in this process

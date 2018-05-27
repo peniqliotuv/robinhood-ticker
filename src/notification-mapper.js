@@ -94,11 +94,10 @@ class NotificationMapper {
         };
         this.positionsMap.set(symbol, entry);
       }
-      this.watchlistMap.set(symbol, entry);
     });
-    console.log('FINAL NOTIF ARRAY:', notifications);
-    if (notifications.length > 0) {
-      this.showNotification(notifications.join('\n'));
+
+    for (const notif of notifications) {
+      this.showNotification(notif);
     }
   }
 
@@ -119,11 +118,10 @@ class NotificationMapper {
     return null;
   }
 
-  showNotification(notifications) {
-    console.log(notifications);
+  showNotification(notification) {
     const notif = new Notification({
       title: 'Price Movement',
-      body: notifications,
+      body: notification,
     });
 
     notif.show();

@@ -50,8 +50,8 @@ input {
     justify-content: center;
     align-items: center;
     border-radius: 2px;
-    height: 40px;
-    width: 200px;
+    height: 35px;
+    width: 180px;
     margin-left: 0 !important;
     color: white !important;
     background-color: var(--rh-green) !important;
@@ -75,19 +75,25 @@ input {
     background-color: #529b80 !important;
 }
 
+.mui-textfield,
 .mui-select {
     width: 80%;
 }
 
+.mui-textfield>input,
+.mui-textfield>label,
 .mui-select>select,
 .mui-select>label {
     color: #e6e4e7;
 }
 
+.mui-textfield:focus>input,
+.mui-textfield>input:focus,
 .mui-select:focus>select {
-    border-color: #529b80;
+    border-color: var(--rh-green);
 }
 
+.mui-textfield>input:focus~label,
 .mui-select:focus>label,
 .mui-select>select:focus~label {
     color: var(--rh-green);
