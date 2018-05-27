@@ -8,6 +8,11 @@
     src: url('../../assets/DIN-Light.ttf');
 }
 
+:root {
+    --rh-green: #21ce99;
+    --rh-red: #f45531;
+}
+
 body {
     display: flex;
     height: 100vh;
@@ -49,23 +54,20 @@ input {
     width: 200px;
     margin-left: 0 !important;
     color: white !important;
-    background-color: #61ca9d !important;
+    background-color: var(--rh-green) !important;
 }
 
-.mui-btn:hover {
-    background-color: #50a885 !important;
+.mui-btn:hover,
+#logout:hover,
+#quit:hover {
+    filter: brightness(82.5%);
 }
 
 /* UGH */
 
 #logout,
 #quit {
-    background-color: #e35f3e !important;
-}
-
-#logout:hover,
-#quit:hover {
-    background-color: #cc5537 !important;
+    background-color: var(--rh-red) !important;
 }
 
 .mui-btn:active {
@@ -88,7 +90,7 @@ input {
 
 .mui-select:focus>label,
 .mui-select>select:focus~label {
-    color: #529b80;
+    color: var(--rh-green);
 }
 
 .button-container {

@@ -17,6 +17,11 @@ body {
     overflow-y: hidden;
 }
 
+:root {
+    --rh-green: #21ce99;
+    --rh-red: #f45531;
+}
+
 #chart {
     padding: 0px 20px;
 }
@@ -66,37 +71,37 @@ span {
 }
 
 .gain>span {
-    color: #50a885 !important;
+    color: var(--rh-green) !important;
 }
 
 .loss>span {
-    color: #e35f3e !important;
+    color: var(--rh-red) !important;
 }
 
 .ct-line.ct-threshold-above,
 .ct-point.ct-threshold-above,
 .ct-bar.ct-threshold-above {
-    stroke: #50a885;
+    stroke: var(--rh-green);
 }
 
 .ct-line.ct-threshold-below,
 .ct-point.ct-threshold-below,
 .ct-bar.ct-threshold-below {
-    stroke: #e35f3e;
+    stroke: var(--rh-red);
 }
 
 .ct-area.ct-threshold-above {
-    fill: #50a885;
+    fill: var(--rh-green);
 }
 
 .ct-area.ct-threshold-below {
-    fill: #e35f3e;
+    fill: var(--rh-red);
 }
 
 .stock-tooltip.chartist-tooltip {
-    background-color: #50a885;
+    background-color: var(--rh-green);
 }
 
 .stock-tooltip.chartist-tooltip::before {
-    background-color: #50a885;
+    background-color: var(--rh-green);
 }

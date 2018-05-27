@@ -23,7 +23,10 @@
     </div>
 
     <script>
-        const { remote, ipcRenderer } = require('electron');
+        const {
+            remote,
+            ipcRenderer
+        } = require('electron');
 
         const userInput = document.getElementById('username');
         const passwordInput = document.getElementById('password');
@@ -36,13 +39,13 @@
 
         /* To be displayed upon an invalid input or error response from RH servers */
         function displayErrorTheme() {
-            document.body.style.background = '#E35F3E';
+            document.body.style.background = '#f45531';
             document.getElementById('login-container').className = 'invalid';
             document.getElementsByClassName('button-container')[0].className += ' invalid';
         }
 
         function displayValidTheme() {
-            document.body.style.background = '#61CA9D';
+            document.body.style.background = '#21ce99';
             document.getElementById('login-container').className = '';
             document.getElementsByClassName('button-container')[0].className = 'button-container';
         }
@@ -95,16 +98,10 @@
                     RobinHoodAPI.token = res.token;
                     remote.getGlobal('addAuthHeaders')(RobinHoodAPI.token);
                     // 2FA succeeded
-                    // Rertrieve all intial information
+                    // Retrieve all intial information
 
                     const accountNumber = await RobinHoodAPI.getAccountNumber();
                     RobinHoodAPI.accountNumber = accountNumber;
-
-                    // const positions = await RobinHoodAPI.getPositions();
-                    // RobinHoodAPI.positions = positions;
-
-                    // const portfolio = await RobinHoodAPI.getPortfolio();
-                    // RobinHoodAPI.portfolio = portfolio;
 
                     const results = await Promise.all([
                         RobinHoodAPI.getPositions(),
@@ -114,7 +111,6 @@
                     RobinHoodAPI.positions = results[0];
                     RobinHoodAPI.portfolio = results[1];
                     RobinHoodAPI.watchlist = results[2];
-                    console.log(RobinHoodAPI);
 
                     ipcRenderer.send('data', RobinHoodAPI);
                     window.close();

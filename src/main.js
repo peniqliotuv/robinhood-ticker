@@ -6,7 +6,8 @@ const {
   Menu,
   session,
   ipcMain,
-  dialog
+  dialog,
+  Notification,
 } = require('electron');
 const AutoLaunch = require('auto-launch');
 const fetch = require('node-fetch');
@@ -14,27 +15,30 @@ const path = require('path');
 const url = require('url');
 const openAboutWindow = require('about-window');
 const menubar = require('menubar');
+const Store = require('electron-store');
+const log = require('electron-log');
 const {
   appUpdater
 } = require('./app-updater');
-const log = require('electron-log');
+const notificationMapper = require('./notification-mapper');
 const {
   timeout,
   TimeoutError
-} = require('./utils/timeout.js');
-const Store = require('electron-store');
+} = require('./utils/timeout');
 const StockAPI = require('./StockAPI');
 
+/* Where we store user preferences */
 const store = new Store();
 
 const ICON_LOGO_LARGE = path.join(__dirname, '../assets/logo-512.png');
 const ICON_LOGO = path.join(__dirname, '../assets/logo-16.png');
+const ELECTRON_PATH = path.join(__dirname, '../node_modules/electron');
 
 const TIMEOUT_MS = 5000;
 console.log(`APP START: NODE_ENV: ${process.env.NODE_ENV}`);
 if (process.env.NODE_ENV === 'development') {
   require('electron-reload')(__dirname, {
-    electron: require(path.join(__dirname, '../node_modules/electron'))
+    electron: require(ELECTRON_PATH)
   });
   require('electron-debug')({
     showDevTools: 'undocked'
@@ -151,7 +155,6 @@ ipcMain.on('manual-refresh', async (event, arg) => {
       preferences: store.get('preferences')
     });
   } catch (e) {
-    console.error('***************************************');
     console.error(e);
     console.error(e.stack);
   }
@@ -229,6 +232,8 @@ const refreshAccountData = async accountNumber => {
     ).toFixed(2);
     tray.setTitle(`$${equity}`);
     mb.tray.setTitle(`${equity}`);
+    /* Send a notification to the notification center if appropriate */
+    notificationMapper.notify(RobinHoodAPI._positions, RobinHoodAPI._watchlist);
   } catch (e) {
     if (e instanceof TimeoutError) {
       console.error('Timeout Error', e);
@@ -518,7 +523,6 @@ const initializeApp = () => {
   });
 
   tray = new Tray(ICON_LOGO);
-
   let contextMenu;
   if (isAuthenticated()) {
     console.log('authenticated');

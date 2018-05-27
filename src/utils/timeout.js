@@ -1,4 +1,8 @@
 const log = require('electron-log');
+log.transports.file.format = '{h}:{i}:{s}:{ms} {text}';
+log.transports.file.level = 'info';
+/* Disable printing to console */
+log.transports.console.level = false;
 
 class TimeoutError extends Error {
   constructor(...args) {
@@ -17,4 +21,7 @@ function timeout(ms = 5000, promise) {
   });
 }
 
-module.exports = { timeout, TimeoutError };
+module.exports = {
+  timeout,
+  TimeoutError
+};

@@ -54,7 +54,7 @@
             const marketOpen = data[0].marketOpen;
             const marketClose = data[0].marketClose;
             const className = marketClose < marketOpen ? 'loss' : 'gain';
-            const color = marketClose < marketOpen ? '#e35f3e' : '#50a885';
+            const color = marketClose < marketOpen ? '#f45531' : '#21ce99';
             points = data.map((item) => {
                 return {
                     x: item.label,
@@ -65,7 +65,6 @@
 
             const container = document.getElementById('title-container');
 
-            // document.getElementById('title').innerHTML = symbol;
             const title = document.createElement('div');
             title.className = 'title';
             title.innerHTML = symbol;
@@ -111,7 +110,6 @@
             document.addEventListener('mousemove', (e) => {
 
                 const bounds = document.getElementById('chart').getBoundingClientRect();
-                // console.log(bounds, e.pageX, e.pageY);
                 const RIGHT_BOUNDARY = 40;
                 const LEFT_BOUNDARY = 80;
                 const TOP_BOUNDARY = 15;
@@ -156,8 +154,6 @@
                     boundingRect: node.getBoundingClientRect()
                 });
             });
-
-
         });
     </script>
 </body>

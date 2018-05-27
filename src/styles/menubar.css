@@ -8,12 +8,17 @@
     src: url('../../assets/DIN-Light.ttf');
 }
 
+:root {
+    --rh-green: #21ce99;
+    --rh-red: #f45531;
+}
+
 body {
     display: flex;
     font-family: 'Din-Light', sans-serif;
     font-weight: 100;
     user-select: none;
-    background-color: #61ca9d;
+    background-color: var(--rh-green);
 }
 
 @keyframes rotate {
@@ -23,7 +28,7 @@ body {
 }
 
 body.equity-loss {
-    background-color: #e35f3e;
+    background-color: var(--rh-red);
 }
 
 .container {
@@ -113,7 +118,7 @@ body.equity-loss {
 }
 
 .stock>.difference-container.equity-loss {
-    color: #e35f3e;
+    color: var(--rh-red);
 }
 
 .blur .symbol-container>div,
@@ -152,7 +157,7 @@ body.equity-loss {
     text-align: left;
     margin-right: 10px;
     font-size: 24px;
-    color: #61ca9d;
+    color: var(--rh-green);
 }
 
 #preferences {
@@ -196,13 +201,13 @@ body.equity-loss {
     align-items: center;
     margin-top: 15px;
     border-radius: 2px;
-    color: #61ca9d;
+    color: var(--rh-green);
     height: 30px;
     width: 235px;
 }
 
 .tab-container.equity-loss {
-    color: #e35f3e;
+    color: #f45531;
 }
 
 .tab-container>.tab {
@@ -216,11 +221,11 @@ body.equity-loss {
 }
 
 .tab-container>.tab.active {
-    border-bottom: 1.5px solid #61ac9d;
+    border-bottom: 1.5px solid var(--rh-green);
 }
 
 .tab-container.equity-loss>.tab.active {
-    border-bottom: 1.5px solid #e35f3e;
+    border-bottom: 1.5px solid var(--rh-red);
 }
 
 #loader {
@@ -228,7 +233,7 @@ body.equity-loss {
 }
 
 #loader.equity-loss {
-    color: #e35f3e !important;
+    color: var(--rh-red) !important;
 }
 
 /*!
