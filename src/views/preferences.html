@@ -70,7 +70,8 @@
             const {
                 refreshRate,
                 viewChangeBy,
-                viewEquityBy
+                viewEquityBy,
+                percent,
             } = message;
             document.getElementById('preferences-form').style.visibility = "visible";
             for (let i = 0; i < selectRefresh.options.length; ++i) {
@@ -85,6 +86,7 @@
                     break;
                 }
             }
+            inputPercent.value = `${percent}%`;
         });
 
         function submit() {

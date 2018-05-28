@@ -103,10 +103,12 @@ ipcMain.on('preferences-saved', (event, arg) => {
   console.log('Preferences Saved!');
   console.log(arg);
   store.set('preferences', arg);
+  /* Send the new preferences to the menubar and update the notificationMapper */
   mb.window.webContents.send('data', {
     data: RobinHoodAPI,
     preferences: store.get('preferences')
   });
+  notificationMapper.thresholdPercent = Number(arg.percent);
   refresh = startRefresh();
 });
 
@@ -335,7 +337,6 @@ const refreshWatchlist = async () => {
     }
     console.timeEnd('refreshWatchlist');
   } catch (e) {
-    console.error('Error In refreshWatchlist');
     if (e instanceof TimeoutError) {
       console.error('Timeout Error', e);
     }

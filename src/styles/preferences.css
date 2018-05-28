@@ -83,14 +83,20 @@ input {
 .mui-textfield>input,
 .mui-textfield>label,
 .mui-select>select,
-.mui-select>label {
+.mui-select>label,
+.mui-textfield:not(.mui-textfield--float-label)>input:invalid:not(:focus):not(:required)~label {
     color: #e6e4e7;
+}
+
+.mui-textfield>input:invalid:not(:focus):not(:required) {
+    border: none;
+    border-bottom: 1px solid rgba(0, 0, 0, .26);
 }
 
 .mui-textfield:focus>input,
 .mui-textfield>input:focus,
 .mui-select:focus>select {
-    border-color: var(--rh-green);
+    border-bottom: 1px solid var(--rh-green);
 }
 
 .mui-textfield>input:focus~label,

@@ -14,6 +14,15 @@ class NotificationMapper {
     this.positionsMap = new Map();
     this.watchlistMap = new Map();
     this.date = null;
+    this.thresholdPercent = 2;
+  }
+
+  set thresholdPercent(percent) {
+    this._thresholdPercent = percent;
+  }
+
+  get thresholdPercent() {
+    return this._thresholdPercent;
   }
 
   getDate() {
@@ -103,16 +112,16 @@ class NotificationMapper {
 
   createNotification(symbol, equity, oldEquity) {
     const diff = Number(equity) - Number(oldEquity);
-    if (Math.abs(diff / Number(oldEquity)) >= 0.05) {
+    if (Math.abs(diff / Number(oldEquity)) >= this.thresholdPercent / 100) {
       if (Math.sign(diff) === 1) {
-        console.log('GREATER THAN 0.05');
+        console.log(`Greater than ${this.thresholdPercent / 100}`);
         return `${symbol} is up ${(diff * 100).toFixed(2)}%`;
       } else {
-        console.log('LESS THAN 0.5');
+        console.log(`Less than ${this.thresholdPercent / 100}`);
         return `${symbol} is down ${(diff * 100).toFixed(2)}%`;
       }
     } else {
-      console.log('THERE WAS NO DIFFERENCE');
+      console.log(`thresholdpercent == 0, not ${this.thresholdPercent}`);
       return `${symbol} showed no change!`;
     }
     return null;
