@@ -32,6 +32,7 @@ button {
 input {
     font-family: 'Din-Light';
     letter-spacing: 0.05em;
+    -webkit-app-region: no-drag;
 }
 
 #backdrop {

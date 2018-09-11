@@ -197,10 +197,10 @@
             const animation = el.animate([{
                 transform: `translateY(${height}px)`
             }], {
-                duration: 50,
-                fill: 'forwards',
-                easing: 'ease-in',
-            });
+                    duration: 50,
+                    fill: 'forwards',
+                    easing: 'ease-in',
+                });
             animation.direction = height >= 0 ? 'down' : 'up';
             return animation;
         }
@@ -393,6 +393,7 @@
         /* Helper function called when data comes in from IPC. If positionsIndices, watchlistIndices == null, then
         we ignore.*/
         function sortData(messageData) {
+            console.log('messagedata', messageData);
             if (positionsIndices !== null && positionsIndices.length === messageData._positions.length) {
                 const sortedPositions = new Array(messageData._positions.length);
                 messageData._positions.forEach((position) => {
@@ -536,6 +537,7 @@
             }
 
             fragment = document.createDocumentFragment();
+            console.log(data);
             data._watchlist.forEach((quote) => {
                 // for (let position of data._positions) {
                 //   if (position.symbol === quote.symbol) {

@@ -6,14 +6,14 @@
     "repository": "https://github.com/peniqliotuv/robinhood-ticker",
     "main": "src/main.js",
     "scripts": {
-        "prod-start": "NODE_ENV=production electron .",
-        "start": "NODE_ENV=development electron .",
-        "build": "NODE_ENV=production cp -r src/styles lib && cp -r src/utils lib && cp -r src/views lib && babel src --out-dir lib --ignore utils",
+        "prod-start": "cross-env NODE_ENV=production electron .",
+        "start": "cross-env NODE_ENV=development electron .",
+        "build": "cross-env NODE_ENV=production cp -r src/styles lib && cp -r src/utils lib && cp -r src/views lib && babel src --out-dir lib --ignore utils",
         "build-watch": "cp -r src/styles lib && cp -r src/utils lib && cp -r src/views lib && babel src --out-dir lib --ignore utils --watch",
-        "debug": "NODE_ENV=development electron --inspect=5858 .",
-        "pack": "NODE_ENV=production electron-builder --dir",
-        "dist": "NODE_ENV=production electron-builder",
-        "publish": "NODE_ENV=production build -p always"
+        "debug": "cross-env NODE_ENV=development electron --inspect=5858 .",
+        "pack": "cross-env NODE_ENV=production electron-builder --dir",
+        "dist": "cross-env NODE_ENV=production electron-builder",
+        "publish": "cross-env NODE_ENV=production build -p always"
     },
     "keywords": [
         "Robinhood"
@@ -28,22 +28,28 @@
         },
         "dmg": {
             "background": "build/background.png"
+        },
+        "win": {
+            "target": "nsis",
+            "icon": "build/icon-512.png",
+            "legalTrademarks": "Copyright Jerry Tsui, 2018"
         }
     },
     "devDependencies": {
         "babel-cli": "^6.26.0",
-        "babel-preset-env": "^1.6.1",
+        "babel-preset-env": "^1.7.0",
         "babel-preset-minify": "^0.4.1",
         "babel-preset-stage-0": "^6.24.1",
+        "cross-env": "^5.2.0",
         "devtron": "^1.4.0",
-        "electron": "^1.8.4",
-        "electron-builder": "^19.55.2",
-        "electron-builder-squirrel-windows": "^20.2.0",
+        "electron": "^1.8.7",
+        "electron-builder": "^19.56.2",
+        "electron-builder-squirrel-windows": "^20.22.0",
         "electron-debug": "^1.5.0",
-        "electron-reload": "^1.2.2",
+        "electron-reload": "^1.2.5",
         "eslint-config-airbnb-base": "^12.1.0",
         "eslint-plugin-import": "^2.11.0",
-        "nodemon": "^1.14.11"
+        "nodemon": "^1.18.2"
     },
     "dependencies": {
         "about-window": "^1.9.1",
@@ -54,13 +60,13 @@
         "babel-register": "^6.26.0",
         "chartist": "^0.11.0",
         "chartist-plugin-tooltip": "0.0.11",
-        "electron-log": "^2.2.14",
+        "electron-log": "^2.2.16",
         "electron-store": "^1.3.0",
         "electron-updater": "^2.20.1",
         "install": "^0.11.0",
         "menubar": "^5.2.3",
-        "moment-timezone": "^0.5.14",
+        "moment-timezone": "^0.5.21",
         "node-fetch": "^1.7.3",
-        "query-string": "^5.1.0"
+        "query-string": "^5.1.1"
     }
 }
