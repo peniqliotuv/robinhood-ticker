@@ -10,27 +10,25 @@ Easily track the performance of your Robinhood stock portfolio just by glancing 
 
 ## Getting Started
 
-The latest release for MacOS is version 2.3.0: https://github.com/peniqliotuv/robinhood-ticker/releases/tag/v2.3.0
-
-Support for windows is currently in progress.
+The latest release for MacOS and Windows is version 2.4.0: https://github.com/peniqliotuv/robinhood-ticker/releases/tag/v2.4.0
 
 ## Features
 
-* Automatic refresh intervals (1, 2, 5, 15 minutes)
+- Automatic refresh intervals (1, 2, 5, 15 minutes)
 
-* Tracking the total value of your stock portfolio
+- Tracking the total value of your stock portfolio
 
-* Tracking your watchlist
+- Tracking your watchlist
 
-* Tracking your portfolio/watchlist with an interactive chart
+- Tracking your portfolio/watchlist with an interactive chart
 
-* Tracking the performance of each individual asset in your portfolio
+- Tracking the performance of each individual asset in your portfolio
 
-* Changing between percent change and gain/loss in USD
+- Changing between percent change and gain/loss in USD
 
-* Automatic updates
+- Automatic updates
 
-* Supports two-factor authentication
+- Supports two-factor authentication
 
 ## More Screenshots
 
@@ -44,15 +42,13 @@ Chart view
 
 ## Releases
 
-MacOS only currently
-
-Latest Release: https://github.com/peniqliotuv/robinhood-ticker/releases/tag/v2.3.0
+Latest Release: https://github.com/peniqliotuv/robinhood-ticker/releases/tag/v2.4.0
 
 ## Built With
 
-* [Electron](https://electronjs.org/)
-* [Chartist](http://gionkunz.github.io/chartist-js/index.html)
-* Vanilla Javascript ❤️
+- [Electron](https://electronjs.org/)
+- [Chartist](http://gionkunz.github.io/chartist-js/index.html)
+- Vanilla Javascript ❤️
 
 ## License
 
