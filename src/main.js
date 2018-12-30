@@ -328,7 +328,6 @@ const refreshWatchlist = async () => {
       });
     }
     console.timeEnd('refreshWatchlist');
-    console.log('DONE WITH REFRESHWATCHLIST');
   } catch (e) {
     if (e instanceof TimeoutError) {
       console.error('Timeout Error', e);

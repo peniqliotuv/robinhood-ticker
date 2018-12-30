@@ -60,6 +60,7 @@
     "babel-register": "^6.26.0",
     "chartist": "^0.11.0",
     "chartist-plugin-tooltip": "0.0.11",
+    "countup.js": "^1.9.3",
     "electron-log": "^2.2.16",
     "electron-store": "^1.3.0",
     "electron-updater": "^2.20.1",

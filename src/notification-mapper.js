@@ -1,4 +1,5 @@
 const moment = require('moment-timezone');
+const path = require('path');
 const { Notification } = require('electron');
 const { isAfterHours } = require('./utils/stockHelpers.js');
 
@@ -120,7 +121,9 @@ class NotificationMapper {
   showNotification(notification) {
     const notif = new Notification({
       title: 'Price Movement',
-      body: notification
+      body: notification,
+      silent: true,
+      icon: path.join(__dirname, '../assets/logo-512.png')
     });
 
     notif.show();

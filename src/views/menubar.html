@@ -26,7 +26,7 @@
         <div id="reload" onclick="refresh()">
           <img src="../../assets/reload.png" />
         </div>
-        <div id="day-end-equity"></div>
+        <div id="day-end-equity">$<span id="total-equity"></span></div>
         <div id="profit"></div>
         <div id="after-hours-profit"></div>
       </div>
@@ -61,9 +61,10 @@
       const { isAfterHours } = require('../utils/stockHelpers.js');
       const { removeClass } = require('../utils/domHelpers.js');
       const moment = require('moment-timezone');
+      const CountUp = require('countup.js');
 
       const tabContainer = document.getElementsByClassName('tab-container')[0];
-      const equityContainer = document.getElementById('day-end-equity');
+      const equityContainer = document.getElementById('total-equity');
       const profitContainer = document.getElementById('profit');
       const afterHoursProfitContainer = document.getElementById(
         'after-hours-profit'
@@ -479,6 +480,30 @@
           afterHoursEquityDifference,
           didProfit
         } = calculateEquity();
+
+        // Total equity animation
+        const options = {
+          useEasing: true,
+          useGrouping: true,
+          separator: ',',
+          decimal: '.'
+        };
+        const previousEquity = Number(equityContainer.innerHTML);
+        const updatedEquity = Number(equity.substring(1));
+        const animation = new CountUp(
+          'total-equity',
+          previousEquity,
+          updatedEquity,
+          2,
+          1.75,
+          options
+        );
+        if (!animation.error) {
+          animation.start();
+        } else {
+          console.error(animation.error);
+        }
+
         equityContainer.innerHTML = equity;
         profitContainer.innerHTML = `${equityDifference} ${moment().format(
           'MMM DD, YYYY'
