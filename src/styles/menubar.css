@@ -31,26 +31,31 @@ body.equity-loss {
   background-color: var(--rh-red);
 }
 
+#root {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
 .container {
   width: 100%;
   display: flex;
   flex-direction: column;
-  justify-content: space-around;
   align-items: center;
-  height: 100vh;
+  height: 400px;
+  background-color: #1b1b1d;
 }
 
-#backdrop {
+/* #backdrop {
   position: absolute;
   height: 400px;
   background-color: #1b1b1d;
   width: 100vw;
   top: 100px;
   z-index: -1;
-}
+} */
 
 #equity-container {
-  width: 235px;
   height: 80px;
   display: flex;
   flex-direction: column;

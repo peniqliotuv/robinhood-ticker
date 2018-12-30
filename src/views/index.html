@@ -1,139 +1,141 @@
 <!DOCTYPE html>
 <html>
-
-<head>
-    <meta charset="UTF-8">
+  <head>
+    <meta charset="UTF-8" />
     <title>RH Ticker</title>
-    <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet">
-    <link rel="stylesheet" href="../styles/styles.css">
-</head>
+    <link
+      href="https://fonts.googleapis.com/css?family=Lato"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../styles/styles.css" />
+  </head>
 
-<body>
-    <div id="backdrop">
-    </div>
+  <body>
+    <div id="backdrop"></div>
     <div id="login-container">
-        <input type="text" placeholder="USERNAME" id="username" value="" autofocus/>
-        <input type="password" placeholder="PASSWORD" id="password" value="" />
-
+      <input
+        type="text"
+        placeholder="USERNAME"
+        id="username"
+        value=""
+        autofocus
+      />
+      <input type="password" placeholder="PASSWORD" id="password" value="" />
     </div>
     <div class="button-container">
-        <div class="button" onclick="login()">
-            LOGIN
-        </div>
+      <div class="button" onclick="login()">LOGIN</div>
     </div>
 
     <script>
-        const {
-            remote,
-            ipcRenderer
-        } = require('electron');
+      const { remote, ipcRenderer } = require('electron');
 
-        const userInput = document.getElementById('username');
-        const passwordInput = document.getElementById('password');
+      const userInput = document.getElementById('username');
+      const passwordInput = document.getElementById('password');
 
-        document.addEventListener('keyup', (e) => {
-            if (e.keyCode === 13) {
-                document.getElementsByClassName('button')[0].click();
-            }
-        })
-
-        /* To be displayed upon an invalid input or error response from RH servers */
-        function displayErrorTheme() {
-            document.body.style.background = '#f45531';
-            document.getElementById('login-container').className = 'invalid';
-            document.getElementsByClassName('button-container')[0].className += ' invalid';
+      document.addEventListener('keyup', e => {
+        if (e.keyCode === 13) {
+          document.getElementsByClassName('button')[0].click();
         }
+      });
 
-        function displayValidTheme() {
-            document.body.style.background = '#21ce99';
-            document.getElementById('login-container').className = '';
-            document.getElementsByClassName('button-container')[0].className = 'button-container';
+      /* To be displayed upon an invalid input or error response from RH servers */
+      function displayErrorTheme() {
+        document.body.style.background = '#f45531';
+        document.getElementById('login-container').className = 'invalid';
+        document.getElementsByClassName('button-container')[0].className +=
+          ' invalid';
+      }
+
+      function displayValidTheme() {
+        document.body.style.background = '#21ce99';
+        document.getElementById('login-container').className = '';
+        document.getElementsByClassName('button-container')[0].className =
+          'button-container';
+      }
+
+      async function login() {
+        const username = userInput.value;
+        const password = passwordInput.value;
+
+        if (!username || !password) {
+          userInput.value = '';
+          passwordInput.value = '';
+          displayErrorTheme();
+          return;
+        } else {
+          displayValidTheme();
         }
+        // Will be null if doesn't exist.
+        let authCode;
+        if (document.getElementById('authCode')) {
+          authCode = document.getElementById('authCode').value;
+        }
+        try {
+          /* Hide login fields and display spinner */
+          const loginContainer = document.getElementById('login-container');
+          userInput.style.visibility = 'hidden';
+          passwordInput.style.visibility = 'hidden';
+          if (document.getElementById('authCode')) {
+            document.getElementById('authCode').style.visibility = 'hidden';
+          }
+          const loader = document.createElement('div');
+          loader.style.color = '#61CA9D';
+          loader.className = 'la-cube-transition la-2x';
+          loader.appendChild(document.createElement('div'));
+          loader.appendChild(document.createElement('div'));
+          loginContainer.appendChild(loader);
+          /* RobinhoodAPI.login() makes a post request, so need to change content-type to application/json*/
+          remote.getGlobal('addContentTypeHeaders')();
+          const res = await RobinHoodAPI.login(username, password, authCode);
+          if (res.success && res.twoFactorAuthRequired) {
+            loginContainer.removeChild(loader);
+            userInput.style.visibility = 'visible';
+            passwordInput.style.visibility = 'visible';
+            const input = document.createElement('input');
+            input.setAttribute('type', 'number');
+            input.setAttribute('id', 'authCode');
+            input.setAttribute('placeholder', '2FA Code');
+            loginContainer.appendChild(input);
+            loginContainer.style.paddingBottom = '99px';
+          } else if (res.success && !res.twoFactorAuthRequired) {
+            RobinHoodAPI.token = res.token;
+            remote.getGlobal('addAuthHeaders')(RobinHoodAPI.token);
+            // 2FA succeeded
+            // Retrieve all intial information
 
-        async function login() {
-            const username = userInput.value;
-            const password = passwordInput.value;
+            const accountNumber = await RobinHoodAPI.getAccountNumber();
+            RobinHoodAPI.accountNumber = accountNumber;
 
-            if (!username || !password) {
-                userInput.value = '';
-                passwordInput.value = '';
-                displayErrorTheme();
-                return;
-            } else {
-                displayValidTheme();
-            }
-            // Will be null if doesn't exist.
-            let authCode;
+            const results = await Promise.all([
+              RobinHoodAPI.getPositions(),
+              RobinHoodAPI.getPortfolio(),
+              RobinHoodAPI.getWatchlist()
+            ]);
+            RobinHoodAPI.positions = results[0];
+            RobinHoodAPI.portfolio = results[1];
+            RobinHoodAPI.watchlist = results[2];
+
+            ipcRenderer.send('data', RobinHoodAPI);
+            window.close();
+          } else if (res.error) {
+            loginContainer.removeChild(loader);
+            userInput.style.visibility = 'visible';
+            passwordInput.style.visibility = 'visible';
             if (document.getElementById('authCode')) {
-                authCode = document.getElementById('authCode').value;
+              document.getElementById('authCode').style.visibility = 'visible';
             }
-            try {
-                /* Hide login fields and display spinner */
-                const loginContainer = document.getElementById('login-container');
-                userInput.style.visibility = 'hidden';
-                passwordInput.style.visibility = 'hidden';
-                if (document.getElementById('authCode')) {
-                    document.getElementById('authCode').style.visibility = 'hidden';
-                }
-                const loader = document.createElement('div');
-                loader.style.color = '#61CA9D';
-                loader.className = 'la-cube-transition la-2x';
-                loader.appendChild(document.createElement('div'));
-                loader.appendChild(document.createElement('div'));
-                loginContainer.appendChild(loader);
-                /* RobinhoodAPI.login() makes a post request, so need to change content-type to application/json*/
-                remote.getGlobal('addContentTypeHeaders')();
-                const res = await RobinHoodAPI.login(username, password, authCode);
-                if (res.success && res.twoFactorAuthRequired) {
-                    loginContainer.removeChild(loader);
-                    userInput.style.visibility = 'visible';
-                    passwordInput.style.visibility = 'visible';
-                    const input = document.createElement('input');
-                    input.setAttribute('type', 'number');
-                    input.setAttribute('id', 'authCode')
-                    input.setAttribute('placeholder', '2FA Code');
-                    loginContainer.appendChild(input);
-                    loginContainer.style.paddingBottom = "99px";
-                } else if (res.success && !res.twoFactorAuthRequired) {
-                    RobinHoodAPI.token = res.token;
-                    remote.getGlobal('addAuthHeaders')(RobinHoodAPI.token);
-                    // 2FA succeeded
-                    // Retrieve all intial information
-
-                    const accountNumber = await RobinHoodAPI.getAccountNumber();
-                    RobinHoodAPI.accountNumber = accountNumber;
-
-                    const results = await Promise.all([
-                        RobinHoodAPI.getPositions(),
-                        RobinHoodAPI.getPortfolio(),
-                        RobinHoodAPI.getWatchlist(),
-                    ]);
-                    RobinHoodAPI.positions = results[0];
-                    RobinHoodAPI.portfolio = results[1];
-                    RobinHoodAPI.watchlist = results[2];
-
-                    ipcRenderer.send('data', RobinHoodAPI);
-                    window.close();
-                } else if (res.error) {
-                    loginContainer.removeChild(loader);
-                    userInput.style.visibility = 'visible';
-                    passwordInput.style.visibility = 'visible';
-                    if (document.getElementById('authCode')) {
-                        document.getElementById('authCode').style.visibility = 'visible';
-                    }
-                    displayErrorTheme();
-                    // Change this to something else...
-                    alert('Error: ' + res.error);
-                }
-            } catch (e) {
-                console.error(e);
-            }
+            displayErrorTheme();
+            // Change this to something else...
+            alert('Error: ' + res.error);
+          }
+        } catch (e) {
+          console.error(e);
         }
+      }
 
-        // You can also require other files to run in this process
-        require('../renderer.js');
-        const RobinHoodAPI = require('../api.js');
+      // You can also require other files to run in this process
+      require('../renderer.js');
+      const RobinHoodAPI = require('../api.js');
     </script>
-</body>
-
+  </body>
 </html>

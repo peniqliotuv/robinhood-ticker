@@ -1,161 +1,157 @@
 <!DOCTYPE html>
 <html>
-
-<head>
-    <meta charset="UTF-8">
+  <head>
+    <meta charset="UTF-8" />
     <title>RH Ticker</title>
-    <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet">
-    <link rel="stylesheet" href="../styles/chartist.min.css">
-    <link rel="stylesheet" href="../styles/chartist-plugin-tooltip.css">
-    <link rel="stylesheet" href="../styles/stock.css">
+    <link
+      href="https://fonts.googleapis.com/css?family=Lato"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../styles/chartist.min.css" />
+    <link rel="stylesheet" href="../styles/chartist-plugin-tooltip.css" />
+    <link rel="stylesheet" href="../styles/stock.css" />
+  </head>
 
-</head>
+  <body>
+    <div id="backdrop"></div>
 
-<body>
-    <div id="backdrop">
-    </div>
-
-    <div id="title-container">
-    </div>
-    <div class=".ct-chart .ct-golden-section" id="chart">
-
-    </div>
-    <div id="vr">&nbsp;
-        <div id="time">
-            &nbsp;
-        </div>
+    <div id="title-container"></div>
+    <div class=".ct-chart .ct-golden-section" id="chart"></div>
+    <div id="vr">
+      &nbsp;
+      <div id="time">&nbsp;</div>
     </div>
     <script>
-        const {
-            remote,
-            ipcRenderer
-        } = require('electron');
-        const Chartist = require('chartist');
-        require('../utils/chartist-plugin-threshold.min.js');
-        require('../utils/chartist-target-line.min.js');
+      const { remote, ipcRenderer } = require('electron');
+      const Chartist = require('chartist');
+      require('../utils/chartist-plugin-threshold.min.js');
+      require('../utils/chartist-target-line.min.js');
 
-        let points;
-        let tooltip;
-        let currentPrice;
+      let points;
+      let tooltip;
+      let currentPrice;
 
-        /* K: time (ex: 11:01AM) V: { price, boundingRect of node } */
-        const nodes = new Map();
-        const vr = document.getElementById('vr');
-        const time = document.getElementById('time');
+      /* K: time (ex: 11:01AM) V: { price, boundingRect of node } */
+      const nodes = new Map();
+      const vr = document.getElementById('vr');
+      const time = document.getElementById('time');
 
-        /* Render the chart when the data has come in from ipcMain */
-        ipcRenderer.on('data', (event, message) => {
-            const {
-                data,
-                symbol,
-                price,
-            } = message;
-            currentPrice = Number(price).toFixed(2);
-            const marketOpen = data[0].marketOpen;
-            const marketClose = data[0].marketClose;
-            const className = marketClose < marketOpen ? 'loss' : 'gain';
-            const color = marketClose < marketOpen ? '#f45531' : '#21ce99';
-            points = data.map((item) => {
-                return {
-                    x: item.label,
-                    y: Number(item.average).toFixed(2),
-                };
-            }).filter((point) => point.y >= 0);
-            console.log(points);
+      /* Render the chart when the data has come in from ipcMain */
+      ipcRenderer.on('data', (event, message) => {
+        const { data, symbol, price } = message;
+        currentPrice = Number(price).toFixed(2);
+        const marketOpen = data[0].marketOpen;
+        const marketClose = data[0].marketClose;
+        const className = marketClose < marketOpen ? 'loss' : 'gain';
+        const color = marketClose < marketOpen ? '#f45531' : '#21ce99';
+        points = data
+          .map(item => {
+            return {
+              x: item.label,
+              y: Number(item.average).toFixed(2)
+            };
+          })
+          .filter(point => point.y >= 0);
+        console.log(points);
 
-            const container = document.getElementById('title-container');
+        const container = document.getElementById('title-container');
 
-            const title = document.createElement('div');
-            title.className = 'title';
-            title.innerHTML = symbol;
+        const title = document.createElement('div');
+        title.className = 'title';
+        title.innerHTML = symbol;
 
-            container.appendChild(title);
+        container.appendChild(title);
 
-            tooltip = document.createElement('div');
-            tooltip.className = 'tooltip';
-            tooltip.innerHTML = price;
+        tooltip = document.createElement('div');
+        tooltip.className = 'tooltip';
+        tooltip.innerHTML = price;
 
-            container.appendChild(tooltip);
+        container.appendChild(tooltip);
 
+        const labels = points.map(point => point.x);
+        const chart = new Chartist.Line(
+          '#chart',
+          {
+            series: [
+              {
+                name: symbol,
+                data: points,
+                className,
+                labels
+              }
+            ]
+          },
+          {
+            fullWidth: true,
+            chartPadding: 20,
+            axisX: {
+              showGrid: false
+            },
+            height: '535px',
+            targetLine: {
+              value: marketOpen
+            },
+            plugins: [
+              Chartist.plugins.ctThreshold({
+                threshold: marketOpen
+              }),
+              Chartist.plugins.ctTargetLine({
+                value: marketOpen
+              })
+            ]
+          }
+        );
 
-            const labels = points.map((point) => point.x);
-            const chart = new Chartist.Line('#chart', {
-                series: [{
-                    name: symbol,
-                    data: points,
-                    className,
-                    labels,
-                }],
-            }, {
-                fullWidth: true,
-                chartPadding: 20,
-                axisX: {
-                    showGrid: false,
-                },
-                height: '535px',
-                targetLine: {
-                    value: marketOpen,
-                },
-                plugins: [
-                    Chartist.plugins.ctThreshold({
-                        threshold: marketOpen,
-                    }),
-                    Chartist.plugins.ctTargetLine({
-                        value: marketOpen,
-                    }),
-                ],
-            });
+        /* Vertical bar movement */
+        document.addEventListener('mousemove', e => {
+          const bounds = document
+            .getElementById('chart')
+            .getBoundingClientRect();
+          const RIGHT_BOUNDARY = 40;
+          const LEFT_BOUNDARY = 80;
+          const TOP_BOUNDARY = 15;
+          const BOTTOM_BOUNDARY = 50;
+          if (
+            e.pageX < bounds.left + LEFT_BOUNDARY ||
+            e.pageX > bounds.right - RIGHT_BOUNDARY ||
+            e.pageY < bounds.top + TOP_BOUNDARY
+          ) {
+            tooltip.innerHTML = currentPrice;
+            vr.style.visibility = 'hidden';
+            time.style.visibility = 'hidden';
+            return;
+          }
+          vr.style.visibility = 'visible';
+          time.style.visibility = 'visible';
+          vr.style.left = `${e.pageX}px`;
 
-            /* Vertical bar movement */
-            document.addEventListener('mousemove', (e) => {
+          let closestTime = null;
+          let closestPrice = null;
+          let diff = Number.MAX_SAFE_INTEGER;
 
-                const bounds = document.getElementById('chart').getBoundingClientRect();
-                const RIGHT_BOUNDARY = 40;
-                const LEFT_BOUNDARY = 80;
-                const TOP_BOUNDARY = 15;
-                const BOTTOM_BOUNDARY = 50;
-                if (e.pageX < bounds.left + LEFT_BOUNDARY || e.pageX > bounds.right - RIGHT_BOUNDARY ||
-                    e.pageY < bounds.top + TOP_BOUNDARY) {
-                    tooltip.innerHTML = currentPrice;
-                    vr.style.visibility = 'hidden';
-                    time.style.visibility = 'hidden';
-                    return;
-                }
-                vr.style.visibility = 'visible';
-                time.style.visibility = 'visible';
-                vr.style.left = `${e.pageX}px`;
-
-                let closestTime = null;
-                let closestPrice = null;
-                let diff = Number.MAX_SAFE_INTEGER;
-
-                /* Calculate the closest node and update the tooltip price accordingly */
-                nodes.forEach((node, time) => {
-                    const deltaX = Math.abs(node.boundingRect.left - e.pageX);
-                    if (deltaX < diff) {
-                        diff = deltaX;
-                        closestTime = time;
-                        closestPrice = node.price;
-                    }
-                });
-                tooltip.innerHTML = closestPrice;
-                time.innerHTML = closestTime;
-            });
-
-            chart.on('draw', (data) => {
-                const {
-                    x: time,
-                    y: price,
-                } = points[data.index];
-                const node = data.element.getNode();
-
-                nodes.set(time, {
-                    price,
-                    boundingRect: node.getBoundingClientRect()
-                });
-            });
+          /* Calculate the closest node and update the tooltip price accordingly */
+          nodes.forEach((node, time) => {
+            const deltaX = Math.abs(node.boundingRect.left - e.pageX);
+            if (deltaX < diff) {
+              diff = deltaX;
+              closestTime = time;
+              closestPrice = node.price;
+            }
+          });
+          tooltip.innerHTML = closestPrice;
+          time.innerHTML = closestTime;
         });
-    </script>
-</body>
 
+        chart.on('draw', data => {
+          const { x: time, y: price } = points[data.index];
+          const node = data.element.getNode();
+
+          nodes.set(time, {
+            price,
+            boundingRect: node.getBoundingClientRect()
+          });
+        });
+      });
+    </script>
+  </body>
 </html>
