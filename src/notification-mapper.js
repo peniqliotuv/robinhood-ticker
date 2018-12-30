@@ -1,5 +1,4 @@
 const moment = require('moment-timezone');
-const path = require('path');
 const { Notification } = require('electron');
 const { isAfterHours } = require('./utils/stockHelpers.js');
 
@@ -31,8 +30,6 @@ class NotificationMapper {
   }
 
   notify(positions = [], watchlist = []) {
-    console.log(`Size of positionsMap: ${this.positionsMap.size}`);
-    console.log(`Size of watchlistMap: ${this.watchlistMap.size}`);
     if (!this.date || this.date !== this.getDate()) {
       console.log('Date is empty');
       this.date = this.getDate();
@@ -83,7 +80,7 @@ class NotificationMapper {
             if (notif !== null) {
               notifications.push(notif);
               entry.hasNotificationTriggered = true;
-              this.positionsMap.set(symbol, entry);
+              this.watchlistMap.set(symbol, entry);
             }
           }
         } else {
@@ -91,7 +88,7 @@ class NotificationMapper {
             equity,
             hasNotificationTriggered: false
           };
-          this.positionsMap.set(symbol, entry);
+          this.watchlistMap.set(symbol, entry);
         }
       }
     );
@@ -99,6 +96,9 @@ class NotificationMapper {
     for (const notif of notifications) {
       this.showNotification(notif);
     }
+
+    console.log(`Size of positionsMap: ${this.positionsMap.size}`);
+    console.log(`Size of watchlistMap: ${this.watchlistMap.size}`);
   }
 
   createNotification(symbol, equity, oldEquity) {
@@ -112,10 +112,9 @@ class NotificationMapper {
         return `${symbol} is down ${(diff * 100).toFixed(2)}%`;
       }
     } else {
-      console.log(`thresholdpercent == 0, not ${this.thresholdPercent}`);
+      console.log(`${symbol} showed no change`);
       return `${symbol} showed no change!`;
     }
-    return null;
   }
 
   showNotification(notification) {

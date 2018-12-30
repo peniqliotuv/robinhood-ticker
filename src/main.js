@@ -294,6 +294,9 @@ const refreshPortfolio = async accountNumber => {
   console.timeEnd('refreshPortfolio');
 };
 
+/**
+ * Refreshes the data of the user's watchlist
+ */
 const refreshWatchlist = async () => {
   console.time('refreshWatchlist');
   try {
@@ -325,6 +328,7 @@ const refreshWatchlist = async () => {
       });
     }
     console.timeEnd('refreshWatchlist');
+    console.log('DONE WITH REFRESHWATCHLIST');
   } catch (e) {
     if (e instanceof TimeoutError) {
       console.error('Timeout Error', e);
