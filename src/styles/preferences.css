@@ -1,121 +1,123 @@
 @font-face {
-    font-family: 'Din';
-    src: url('../../assets/DIN-Medium.ttf');
+  font-family: 'Din';
+  src: url('../../assets/DIN-Medium.ttf');
 }
 
 @font-face {
-    font-family: 'Din-Light';
-    src: url('../../assets/DIN-Light.ttf');
+  font-family: 'Din-Light';
+  src: url('../../assets/DIN-Light.ttf');
 }
 
 :root {
-    --rh-green: #21ce99;
-    --rh-red: #f45531;
+  --rh-green: #21ce99;
+  --rh-red: #f45531;
 }
 
 body {
-    display: flex;
-    height: 100vh;
-    overflow-y: hidden;
-    font-family: 'Din-Light', sans-serif;
-    font-weight: 100;
-    user-select: none;
-    background-color: #212025;
-    -webkit-app-region: drag;
+  display: flex;
+  height: 100vh;
+  overflow-y: hidden;
+  font-family: 'Din-Light', sans-serif;
+  font-weight: 100;
+  user-select: none;
+  background-color: #212025;
+  -webkit-app-region: drag;
 }
 
 /* Needed so button is not draggable */
 
 button {
-    -webkit-app-region: no-drag;
+  -webkit-app-region: no-drag;
 }
 
 input {
-    font-family: 'Din-Light';
+  font-family: 'Din-Light';
 }
 
 #preferences-form {
-    visibility: none;
-    display: flex;
-    justify-content: center;
-    width: 100%;
-    margin-top: 20px;
-    align-items: center;
-    flex-direction: column;
+  visibility: none;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  margin-top: 20px;
+  align-items: center;
+  flex-direction: column;
 }
 
 .mui-btn,
 .mui-btn:hover {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border-radius: 2px;
-    height: 35px;
-    width: 180px;
-    margin-left: 0 !important;
-    color: white !important;
-    background-color: var(--rh-green) !important;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 2px;
+  height: 35px;
+  width: 180px;
+  margin-left: 0 !important;
+  color: white !important;
+  background-color: var(--rh-green) !important;
 }
 
 .mui-btn:hover,
 #logout:hover,
 #quit:hover {
-    filter: brightness(82.5%);
+  filter: brightness(82.5%);
 }
 
 /* UGH */
 
 #logout,
 #quit {
-    background-color: var(--rh-red) !important;
+  background-color: var(--rh-red) !important;
 }
 
 .mui-btn:active {
-    color: white !important;
-    background-color: #529b80 !important;
+  color: white !important;
+  background-color: #529b80 !important;
 }
 
 .mui-textfield,
 .mui-select {
-    width: 80%;
+  width: 80%;
 }
 
-.mui-textfield>input,
-.mui-textfield>label,
-.mui-select>select,
-.mui-select>label,
-.mui-textfield:not(.mui-textfield--float-label)>input:invalid:not(:focus):not(:required)~label {
-    color: #e6e4e7;
+.mui-textfield > input,
+.mui-textfield > label,
+.mui-select > select,
+.mui-select > label,
+.mui-textfield:not(.mui-textfield--float-label)
+  > input:invalid:not(:focus):not(:required)
+  ~ label {
+  color: #e6e4e7;
 }
 
-.mui-textfield>input:invalid:not(:focus):not(:required) {
-    border: none;
-    border-bottom: 1px solid rgba(0, 0, 0, .26);
+.mui-textfield > input:invalid:not(:focus):not(:required) {
+  border: none;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.26);
 }
 
-.mui-textfield:focus>input,
-.mui-textfield>input:focus,
-.mui-select:focus>select {
-    border-bottom: 1px solid var(--rh-green);
+.mui-textfield:focus > input,
+.mui-textfield > input:focus,
+.mui-select:focus > select {
+  border-bottom: 1px solid var(--rh-green);
 }
 
-.mui-textfield>input:focus~label,
-.mui-select:focus>label,
-.mui-select>select:focus~label {
-    color: var(--rh-green);
+.mui-textfield > input:focus ~ label,
+.mui-select:focus > label,
+.mui-select > select:focus ~ label {
+  color: var(--rh-green);
 }
 
 .button-container {
-    display: flex;
-    flex-direction: column;
+  display: flex;
+  flex-direction: column;
 }
 
 #backdrop {
-    position: absolute;
-    height: 415px;
-    background-color: #212025;
-    width: 100vw;
-    border-radius: 0 0 2px 2px;
-    top: 60px;
-    z-index: -1;
+  position: absolute;
+  height: 415px;
+  background-color: #212025;
+  width: 100vw;
+  border-radius: 0 0 2px 2px;
+  top: 60px;
+  z-index: -1;
 }

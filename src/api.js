@@ -52,10 +52,7 @@ class RobinHoodAPI {
   }
 
   async getAccountNumber() {
-    const {
-      token,
-      accountNumber
-    } = this;
+    const { token, accountNumber } = this;
     if (!token) {
       throw new Error('Token must be non-null');
     }
@@ -88,25 +85,25 @@ class RobinHoodAPI {
           const json = await res.json();
           const transformed = await Promise.all(
             json.results
-            .filter(result => Number(result.quantity) !== 0)
-            .map(async result => {
-              const instrument = await (await fetch(
-                decodeURIComponent(result.instrument)
-              )).json();
-              const quote = await (await fetch(
-                decodeURIComponent(instrument.quote)
-              )).json();
-              return {
-                averageBuyPrice: result.average_buy_price,
-                instrument: result.instrument,
-                quantity: Number(result.quantity),
-                quote: quote,
-                currentPrice: quote.last_traded_price,
-                symbol: instrument.symbol,
-                name: instrument.name,
-                instrument: instrument
-              };
-            })
+              .filter(result => Number(result.quantity) !== 0)
+              .map(async result => {
+                const instrument = await (await fetch(
+                  decodeURIComponent(result.instrument)
+                )).json();
+                const quote = await (await fetch(
+                  decodeURIComponent(instrument.quote)
+                )).json();
+                return {
+                  averageBuyPrice: result.average_buy_price,
+                  instrument: result.instrument,
+                  quantity: Number(result.quantity),
+                  quote: quote,
+                  currentPrice: quote.last_traded_price,
+                  symbol: instrument.symbol,
+                  name: instrument.name,
+                  instrument: instrument
+                };
+              })
           );
           return transformed;
         }

@@ -5,7 +5,7 @@ const {
   Tray,
   Menu,
   session,
-  ipcMain,
+  ipcMain
 } = require('electron');
 const os = require('os');
 const AutoLaunch = require('auto-launch');
@@ -13,22 +13,23 @@ const fetch = require('node-fetch');
 const path = require('path');
 const url = require('url');
 const openAboutWindow = require('about-window').default;
-console.log(openAboutWindow);
 const menubar = require('menubar');
 const Store = require('electron-store');
 const log = require('electron-log');
 const notificationMapper = require('./notification-mapper');
-const {
-  timeout,
-  TimeoutError
-} = require('./utils/timeout');
+const { timeout, TimeoutError } = require('./utils/timeout');
 const StockAPI = require('./StockAPI');
 
 /* Where we store user preferences */
 const store = new Store();
 
 const ICON_LOGO_LARGE = path.join(__dirname, '../assets/logo-512.png');
-const ICON_LOGO = path.join(__dirname, os.platform() === 'darwin' ? '../assets/logo-16.png' : '../assets/logo-16-white.png');
+const ICON_LOGO = path.join(
+  __dirname,
+  os.platform() === 'darwin'
+    ? '../assets/logo-16.png'
+    : '../assets/logo-16-white.png'
+);
 const ELECTRON_PATH = path.join(__dirname, '../node_modules/electron');
 
 const TIMEOUT_MS = 5000;
@@ -60,7 +61,7 @@ ipcMain.on('data', (event, arg) => {
   store.set('data', RobinHoodAPI);
   const equity = Number(
     RobinHoodAPI._portfolio.extended_hours_equity ||
-    RobinHoodAPI._portfolio.equity
+      RobinHoodAPI._portfolio.equity
   ).toFixed(2);
   if (mb === null) {
     tray.destroy();
@@ -114,21 +115,16 @@ ipcMain.on('open-preferences', (event, symbol) => {
 });
 
 ipcMain.on('chart', (event, data) => {
-  const {
-    symbol,
-    tabIndex
-  } = data;
+  const { symbol, tabIndex } = data;
   createStockWindow(symbol, tabIndex);
 });
 
 ipcMain.on('logout', async () => {
   try {
-    await fetchWithAuth(
-      'https://api.robinhood.com/api-token-logout/', {
-        method: 'POST',
-        Accept: 'application/json'
-      }
-    );
+    await fetchWithAuth('https://api.robinhood.com/api-token-logout/', {
+      method: 'POST',
+      Accept: 'application/json'
+    });
     RobinHoodAPI = null;
     const contextMenu = createLoginMenu();
     mb.tray.setTitle('');
@@ -224,7 +220,7 @@ const refreshAccountData = async accountNumber => {
     console.timeEnd('refreshAccountData');
     const equity = Number(
       RobinHoodAPI._portfolio.extended_hours_equity ||
-      RobinHoodAPI._portfolio.equity
+        RobinHoodAPI._portfolio.equity
     ).toFixed(2);
     tray.setTitle(`$${equity}`);
     mb.tray.setTitle(`${equity}`);
@@ -316,9 +312,7 @@ const refreshWatchlist = async () => {
       const querystring = watchlistInstruments
         .map(instrument => instrument.symbol)
         .join(',');
-      const {
-        results: watchlistQuotes
-      } = await (await fetchWithAuth(
+      const { results: watchlistQuotes } = await (await fetchWithAuth(
         `https://api.robinhood.com/quotes/?symbols=${querystring}`
       )).json();
       RobinHoodAPI._watchlist = watchlistQuotes.filter(quote => {
@@ -346,54 +340,68 @@ const createLoginWindow = () => {
     title: 'RobinHood Ticker',
     resizable: false,
     titleBarStyle: 'hidden',
-    show: false,
+    show: false
   };
 
   if (os.platform() === 'darwin') {
     // Mac
-    return new BrowserWindow(Object.assign({
-      width: 300,
-      height: 450,
-    }, defaultOpts));
+    return new BrowserWindow(
+      Object.assign(
+        {
+          width: 300,
+          height: 450
+        },
+        defaultOpts
+      )
+    );
   } else {
     // Windows
-    return new BrowserWindow(Object.assign({
-      width: 325,
-      height: 500,
-      frame: false,
-    }, defaultOpts));
+    return new BrowserWindow(
+      Object.assign(
+        {
+          width: 325,
+          height: 500,
+          frame: false
+        },
+        defaultOpts
+      )
+    );
   }
-
 };
 
 // To be displayed if the user has not authenticated yet
 const createLoginMenu = () => {
-  const template = [{
-    label: 'Login',
-    click: () => {
-      if (win === null) {
-        win = createLoginWindow();
-      }
+  const template = [
+    {
+      label: 'Login',
+      click: () => {
+        if (win === null) {
+          win = createLoginWindow();
+        }
 
-      win.loadURL(
-        url.format({
-          pathname: path.join(__dirname, 'views/index.html'),
-          protocol: 'file:',
-          slashes: true
-        })
-      );
-      win.on('close', () => {
-        win = null;
-      });
-      win.webContents.on('did-finish-load', () => win.show());
+        win.loadURL(
+          url.format({
+            pathname: path.join(__dirname, 'views/index.html'),
+            protocol: 'file:',
+            slashes: true
+          })
+        );
+        win.on('close', () => {
+          win = null;
+        });
+        win.webContents.on('did-finish-load', () => win.show());
+      }
     }
-  }];
-  template.push({
-    type: 'separator'
-  }, {
+  ];
+  template.push(
+    {
+      type: 'separator'
+    },
+    {
       label: 'Quit',
       click: () => app.quit()
-    });
+    }
+  );
   return Menu.buildFromTemplate(template);
 };
 
@@ -517,7 +525,7 @@ const initializeApp = () => {
       refreshRate: 1,
       viewChangeBy: 'gain/loss',
       viewEquityBy: 'total-equity',
-      percent: 2,
+      percent: 2
     });
   }
 
@@ -542,7 +550,7 @@ const initializeApp = () => {
     RobinHoodAPI = store.get('data');
     const equity = Number(
       RobinHoodAPI._portfolio.extended_hours_equity ||
-      RobinHoodAPI._portfolio.equity
+        RobinHoodAPI._portfolio.equity
     ).toFixed(2);
     global.addAuthHeaders(RobinHoodAPI._token);
     mb = menubar({
