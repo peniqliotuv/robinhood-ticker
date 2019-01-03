@@ -67,6 +67,7 @@
     "install": "^0.11.0",
     "menubar": "^5.2.3",
     "moment-timezone": "^0.5.21",
+    "mousetrap": "^1.6.2",
     "node-fetch": "^1.7.3",
     "query-string": "^5.1.1"
   }

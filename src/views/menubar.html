@@ -27,10 +27,11 @@
           <img src="../../assets/reload.png" />
         </div>
         <div id="day-end-equity">$<span id="total-equity"></span></div>
-        <div id="profit"></div>
+        <div id="profit"><span id="profit-number"></span></div>
         <div id="after-hours-profit"></div>
       </div>
-      <div class="container">
+      <div id="search-container" class="container">asfjalsdkfjals</div>
+      <div id="main-container" class="container">
         <div
           id="loader"
           style="color: #21ce99; position: absolute;"
@@ -62,7 +63,10 @@
       const { removeClass } = require('../utils/domHelpers.js');
       const moment = require('moment-timezone');
       const CountUp = require('countup.js');
+      const Mousetrap = require('mousetrap');
 
+      const searchContainer = document.getElementById('search-container');
+      const mainContainer = document.getElementById('main-container');
       const tabContainer = document.getElementsByClassName('tab-container')[0];
       const equityContainer = document.getElementById('total-equity');
       const profitContainer = document.getElementById('profit');
@@ -74,18 +78,21 @@
 
       let tabIndex = 0;
       let timeoutId = null;
+      /* data contains the actual details of your Robinhood Portfolio */
       let data = null;
       let preferences = null;
 
       let positionsIndices = null;
       let watchlistIndices = null;
+
+      let isSearchViewOpen = false;
+
       /* Draggable Code */
       let dragObj = null;
       let positionsElements = null;
       const placeholder = document.createElement('div');
 
       let longPressTimeout = null;
-
       let longPressTimeoutExpired = false;
       /* Grab a reference to the parent container of each <div> so that offset can be
         correctly calculated*/
@@ -99,7 +106,6 @@
           dragObj = obj;
           dragObj.yGrabPos = e.pageY;
           dragObj.container = container;
-          console.log(dragObj.container);
           /* Create Placeholder object so that the elements don't collapse by an offset of 1 */
 
           dragObj.style.position = 'absolute';
@@ -130,23 +136,39 @@
         });
 
         obj.onmousedown = function(e) {
-          console.log('MOUSEDOWN');
           longPressTimeoutExpired = false;
         };
 
         obj.onmouseup = function(e) {
           /* Send a message to the main process to open the stock info window */
-          console.log('MOUSEUP', e.which, longPressTimeoutExpired);
+          //   console.log('MOUSEUP', e.which, longPressTimeoutExpired);
           if (e.which === 1 && !longPressTimeoutExpired) {
             const symbol =
               obj.childNodes[0].childNodes[0].childNodes[0].innerHTML;
-            console.log(symbol);
+            // console.log(symbol);
             ipcRenderer.send('chart', {
               symbol,
               tabIndex
             });
           }
         };
+      }
+
+      function animate(el, height) {
+        const animation = el.animate(
+          [
+            {
+              transform: `translateY(${height}px)`
+            }
+          ],
+          {
+            duration: 50,
+            fill: 'forwards',
+            easing: 'ease-in'
+          }
+        );
+        animation.direction = height >= 0 ? 'down' : 'up';
+        return animation;
       }
 
       document.onmouseup = function(e) {
@@ -193,26 +215,9 @@
           dragObj = null;
           positionsElements = null;
         } else if (e.which === 3) {
-          console.log('.... what do i do');
+          //   console.log('.... what do i do');
         }
       };
-
-      function animate(el, height) {
-        const animation = el.animate(
-          [
-            {
-              transform: `translateY(${height}px)`
-            }
-          ],
-          {
-            duration: 50,
-            fill: 'forwards',
-            easing: 'ease-in'
-          }
-        );
-        animation.direction = height >= 0 ? 'down' : 'up';
-        return animation;
-      }
 
       document.onmousemove = function(e) {
         if (dragObj == null) {
@@ -303,6 +308,16 @@
           }
         });
       };
+
+      // Search for stocks
+      Mousetrap.bind('command+f', () => {
+        isSearchViewOpen = !isSearchViewOpen;
+        if (isSearchViewOpen) {
+          searchContainer.style.display = 'initial';
+        } else {
+          searchContainer.style.display = 'none';
+        }
+      });
 
       function openPreferences() {
         ipcRenderer.send('open-preferences', true);
@@ -481,30 +496,14 @@
           didProfit
         } = calculateEquity();
 
-        // Total equity animation
-        const options = {
-          useEasing: true,
-          useGrouping: true,
-          separator: ',',
-          decimal: '.'
-        };
-        const previousEquity = Number(equityContainer.innerHTML);
-        const updatedEquity = Number(equity.substring(1));
-        const animation = new CountUp(
-          'total-equity',
-          previousEquity,
-          updatedEquity,
-          2,
-          1.75,
-          options
-        );
-        if (!animation.error) {
-          animation.start();
-        } else {
-          console.error(animation.error);
-        }
+        // Necessary because equityContainer.innerHTML comes out to something like "10,000.00"
+        const previousEquity = Number(
+          equityContainer.innerHTML.replace(',', '')
+        ).toFixed(2);
+        const updatedEquity = Number(equity.substring(1)).toFixed(2);
 
-        equityContainer.innerHTML = updatedEquity;
+        animateBetween(previousEquity, updatedEquity, 'total-equity');
+
         profitContainer.innerHTML = `${equityDifference} ${moment().format(
           'MMM DD, YYYY'
         )}`;
@@ -650,6 +649,32 @@
           fragment.append(container);
         });
         watchlistContainer.appendChild(fragment);
+      }
+
+      function animateBetween(oldVal, newVal, id) {
+        const countUpOptions = {
+          useEasing: true,
+          useGrouping: true,
+          separator: ',',
+          decimal: '.'
+        };
+        // Necessary because equityContainer.innerHTML comes out to something like "10,000.00"
+
+        const animation = new CountUp(
+          id,
+          oldVal,
+          newVal,
+          2,
+          1.75,
+          countUpOptions
+        );
+        if (!animation.error) {
+          animation.start();
+          return true;
+        } else {
+          console.error(animation.error);
+          return false;
+        }
       }
 
       require('../renderer.js');

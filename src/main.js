@@ -26,6 +26,7 @@ const store = new Store();
 const ICON_LOGO_LARGE = path.join(__dirname, '../assets/logo-512.png');
 const ICON_LOGO = path.join(
   __dirname,
+  // Windows needs a white logo
   os.platform() === 'darwin'
     ? '../assets/logo-16.png'
     : '../assets/logo-16-white.png'

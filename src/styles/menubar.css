@@ -37,6 +37,10 @@ body.equity-loss {
   width: 100%;
 }
 
+#search-container {
+  display: none;
+}
+
 .container {
   width: 100%;
   display: flex;

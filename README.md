@@ -1,6 +1,6 @@
 # Robinhood Ticker
 
-![GitHub version](https://d25lcipzij17d.cloudfront.net/badge.svg?id=gh&type=6&v=2.3.0&x2=0) ![Open Source Love](https://badges.frapsoft.com/os/mit/mit.svg?v=102)
+![GitHub version](https://d25lcipzij17d.cloudfront.net/badge.svg?id=gh&type=6&v=3.0.0&x2=0) ![Open Source Love](https://badges.frapsoft.com/os/mit/mit.svg?v=102)
 
 Easily track the performance of your Robinhood stock portfolio just by glancing at the your computer's menubar. Robinhood Ticker uses the [unofficial Robinhood API](https://github.com/sanko/Robinhood) to authenticate with and retrieve data from the Robinhood servers. Your credentials and portfolio information are **never** stored or sent to any third party.
 
@@ -10,7 +10,7 @@ Easily track the performance of your Robinhood stock portfolio just by glancing 
 
 ## Getting Started
 
-The latest release for MacOS and Windows is version 2.4.0: https://github.com/peniqliotuv/robinhood-ticker/releases/tag/v2.4.0
+The latest release for MacOS and Windows is version 3.0.0: https://github.com/peniqliotuv/robinhood-ticker/releases/tag/v3.0.0
 
 ## Features
 
@@ -48,6 +48,8 @@ Latest Release: https://github.com/peniqliotuv/robinhood-ticker/releases/tag/v2.
 
 - [Electron](https://electronjs.org/)
 - [Chartist](http://gionkunz.github.io/chartist-js/index.html)
+- [Mousetrap](https://github.com/ccampbell/mousetrap)
+- [Countup.js](https://github.com/inorganik/CountUp.js)
 - Vanilla Javascript ❤️
 
 ## License
