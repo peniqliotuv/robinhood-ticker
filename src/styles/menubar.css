@@ -11,6 +11,7 @@
 :root {
   --rh-green: #21ce99;
   --rh-red: #f45531;
+  --rh-grey: #fafafa;
 }
 
 body {
@@ -19,6 +20,7 @@ body {
   font-weight: 100;
   user-select: none;
   background-color: var(--rh-green);
+  caret-color: var(--rh-green);
 }
 
 @keyframes rotate {
@@ -29,6 +31,7 @@ body {
 
 body.equity-loss {
   background-color: var(--rh-red);
+  caret-color: var(--rh-green);
 }
 
 #root {
@@ -39,6 +42,32 @@ body.equity-loss {
 
 #search-container {
   display: none;
+}
+
+.searchbar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 15px auto;
+  /* padding: 8px 0; */
+  /* border-radius: 5px; */
+  width: 80%;
+  /* box-shadow: 0 0 5px #303032; */
+}
+
+#search-input {
+  border: none;
+  outline: none;
+  border-bottom: 1px solid grey;
+  background-color: transparent;
+  margin: 0 5px;
+  padding: 5px;
+  transition: all 0.3s ease-in-out;
+  color: lightgray;
+}
+
+.searchbar:focus {
+  box-shadow: 0 0 5px rgba(81, 203, 238, 1);
 }
 
 .container {
@@ -72,7 +101,7 @@ body.equity-loss {
 
 #day-end-equity {
   font-size: 28px;
-  color: #fafafa;
+  color: var(--rh-grey);
   margin: 0;
 }
 
@@ -146,7 +175,7 @@ body.equity-loss {
   flex-direction: column;
   justify-content: space-around;
   align-items: flex-start;
-  color: #fafafa;
+  color: var(--rh-grey);
   margin-left: 10px;
   /* background-color: red; */
 }

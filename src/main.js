@@ -166,6 +166,26 @@ ipcMain.on('show-about', (event, arg) => {
   });
 });
 
+ipcMain.on('get-stock-quote', async (event, symbols) => {
+  console.log('get-stock-quote', symbols);
+  try {
+    const quote = await getStockQuote(symbols);
+    console.log(quote);
+    mb.window.webContents.send('stock-quote', quote);
+  } catch (e) {
+    console.error(e);
+  }
+});
+
+ipcMain.on('fuzzy-search', async (event, query) => {
+  try {
+    const results = await fuzzySearchQuery(query);
+    mb.window.webContents.send('fuzzy-search', results);
+  } catch (e) {
+    console.error(e);
+  }
+});
+
 const startRefresh = () => {
   const refreshRate = store.get('preferences').refreshRate * 60 * 1000;
   console.log(`Refreshing at rate: ${refreshRate}`);
@@ -313,12 +333,10 @@ const refreshWatchlist = async () => {
           )).json();
         })
       );
-      const querystring = watchlistInstruments
+      const queryString = watchlistInstruments
         .map(instrument => instrument.symbol)
         .join(',');
-      const { results: watchlistQuotes } = await (await fetchWithAuth(
-        `https://api.robinhood.com/quotes/?symbols=${querystring}`
-      )).json();
+      const watchlistQuotes = await getStockQuote(queryString);
       RobinHoodAPI._watchlist = watchlistQuotes.filter(quote => {
         for (let position of RobinHoodAPI._positions) {
           if (position.symbol === quote.symbol) {
@@ -332,8 +350,38 @@ const refreshWatchlist = async () => {
   } catch (e) {
     if (e instanceof TimeoutError) {
       console.error('Timeout Error', e);
+    } else {
+      console.error('Other error: ', e);
     }
   }
+};
+
+/**
+ * Fetches a stock quote from the Robinhood API
+ * @param {*} symbols an array of symbols or one symbol
+ */
+const getStockQuote = async symbols => {
+  let queryString = symbols;
+  if (Array.isArray(symbols)) {
+    queryString = symbols.join(',');
+  }
+  // API only accepts uppercased strings
+  queryString = queryString.toUpperCase();
+  const { results } = await (await fetchWithAuth(
+    `https://api.robinhood.com/quotes/?symbols=${queryString}`
+  )).json();
+  return results;
+};
+
+/**
+ * Performs a fuzzy search from the Robinhood API
+ * @param {string} query the query passed into the searchbar
+ */
+const fuzzySearchQuery = async query => {
+  const { instruments: results } = await (await fetchWithAuth(
+    `https://api.robinhood.com/midlands/search/?query=${query}`
+  )).json();
+  return results;
 };
 
 // The login window.

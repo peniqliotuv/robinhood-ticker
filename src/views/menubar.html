@@ -30,7 +30,13 @@
         <div id="profit"><span id="profit-number"></span></div>
         <div id="after-hours-profit"></div>
       </div>
-      <div id="search-container" class="container">asfjalsdkfjals</div>
+      <div id="search-container" class="container">
+        <div class="searchbar">
+          <img src="../../assets/search.png" height="25px" />
+          <input type="text" placeholder="Search" id="search-input" />
+        </div>
+        <div id="search-results"></div>
+      </div>
       <div id="main-container" class="container">
         <div
           id="loader"
@@ -65,6 +71,8 @@
       const CountUp = require('countup.js');
       const Mousetrap = require('mousetrap');
 
+      const searchInput = document.getElementById('search-input');
+      const searchResultsContainer = document.getElementById('search-results');
       const searchContainer = document.getElementById('search-container');
       const mainContainer = document.getElementById('main-container');
       const tabContainer = document.getElementsByClassName('tab-container')[0];
@@ -77,7 +85,7 @@
       const watchlistContainer = document.getElementById('watchlist');
 
       let tabIndex = 0;
-      let timeoutId = null;
+      let timeoutIdRepaintDOM = null;
       /* data contains the actual details of your Robinhood Portfolio */
       let data = null;
       let preferences = null;
@@ -86,6 +94,8 @@
       let watchlistIndices = null;
 
       let isSearchViewOpen = false;
+      let searchInputValue = '';
+      let timeoutIdFetchStockQuote = null;
 
       /* Draggable Code */
       let dragObj = null;
@@ -170,6 +180,17 @@
         animation.direction = height >= 0 ? 'down' : 'up';
         return animation;
       }
+
+      /* Event handler for search functionality */
+      document.onkeyup = function(e) {
+        searchInputValue = e.target.value.trim();
+        if (timeoutIdFetchStockQuote !== null) {
+          clearTimeout(timeoutIdFetchStockQuote);
+        }
+        timeoutIdFetchStockQuote = window.setTimeout(() => {
+          ipcRenderer.send('fuzzy-search', searchInputValue);
+        }, 250);
+      };
 
       document.onmouseup = function(e) {
         if (e.which === 1) {
@@ -314,8 +335,10 @@
         isSearchViewOpen = !isSearchViewOpen;
         if (isSearchViewOpen) {
           searchContainer.style.display = 'initial';
+          searchInput.focus();
         } else {
           searchContainer.style.display = 'none';
+          searchInput.blur();
         }
       });
 
@@ -471,16 +494,32 @@
         repaintDOM();
       });
 
+      ipcRenderer.on('stock-quote', (event, message) => {
+        console.log('stock-quote', message);
+      });
+
+      ipcRenderer.on('fuzzy-search', (event, searchResults) => {
+        console.log('fuzzy-search', searchResults);
+        while (searchResultsContainer.hasChildNodes()) {
+          searchResultsContainer.removeChild(searchResultsContainer.lastChild);
+        }
+        searchResults.forEach(item => {
+          const el = document.createElement('div');
+          el.innerHTML = item.simple_name;
+          searchResultsContainer.appendChild(el);
+        });
+      });
+
       function repaintDOM() {
         /* If data comes in, we want to delay the DOM repainting until dragObj is null. Otherwise, focus is lost on the dragObj*/
         if (dragObj !== null) {
           console.log('DragObj is not null');
-          window.setTimeout(repaintDOM, 100);
+          timeoutIdRepaintDOM = window.setTimeout(repaintDOM, 100);
           return;
         }
-        if (timeoutId !== null) {
-          clearTimeout(timeoutId);
-          timeoutId = null;
+        if (timeoutIdRepaintDOM !== null) {
+          clearTimeout(timeoutIdRepaintDOM);
+          timeoutIdRepaintDOM = null;
         }
 
         const loader = document.getElementById('loader');
