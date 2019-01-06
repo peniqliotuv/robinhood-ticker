@@ -1,130 +1,160 @@
 <!DOCTYPE html>
 <html>
-
-<head>
-    <meta charset="UTF-8">
+  <head>
+    <meta charset="UTF-8" />
     <title>Preferences</title>
-    <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet">
-    <link href="https://cdn.muicss.com/mui-0.9.36/css/mui.min.css" rel="stylesheet" type="text/css" />
+    <link
+      href="https://fonts.googleapis.com/css?family=Lato"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.muicss.com/mui-0.9.36/css/mui.min.css"
+      rel="stylesheet"
+      type="text/css"
+    />
     <script src="https://cdn.muicss.com/mui-0.9.36/js/mui.min.js"></script>
     <link rel="stylesheet" href="../styles/preferences.css" />
-</head>
+  </head>
 
-<body>
-
-    <!-- <div id="loader" class="loader">Loading...</div> -->
+  <body>
     <div id="backdrop"></div>
     <div id="preferences-form" class="mui-form">
-        <div class="mui-select">
-            <select id="select-refresh">
-                <option value="1">1 Minute</option>
-                <option value="2">2 Minutes</option>
-                <option value="5">5 Minutes</option>
-                <option value="10">10 Minutes</option>
-                <option value="15">15 Minutes</option>
-            </select>
-            <label>Refresh every...</label>
-        </div>
-        <div class="mui-divider"></div>
-        <div class="mui-select">
-            <select id="select-change">
-                <option value="percent">Percent Change</option>
-                <option value="gain/loss">Individual Gain/Loss</option>
-                <option value="total-gain/loss">Total Gain/Loss</option>
-            </select>
-            <label>View Change By</label>
-        </div>
-        <div class="mui-divider"></div>
-        <div class="mui-textfield">
-            <input id="input-percent" type="text" placeholder="2%" value="2%" pattern="[0-9]" onkeypress="return isValid(event)">
-            <label>Notify me if a prices moves by...</label>
-        </div>
-        <div class="button-container">
-            <button type="button" onclick="submit()" class="mui-btn mui-btn--raised">Submit</button>
-            <button type="button" onclick="about()" class="mui-btn mui-btn--raised">About RH Ticker</button>
-            <button type="button" onclick="logout()" id="logout" class="mui-btn mui-btn--raised">Logout</button>
-            <button type="button" onclick="quit()" id="quit" class="mui-btn mui-btn--raised">Quit</button>
-        </div>
+      <div class="mui-select">
+        <select id="select-refresh">
+          <option value="1">1 Minute</option>
+          <option value="2">2 Minutes</option>
+          <option value="5">5 Minutes</option>
+          <option value="10">10 Minutes</option>
+          <option value="15">15 Minutes</option>
+        </select>
+        <label>Refresh every...</label>
+      </div>
+      <div class="mui-divider"></div>
+      <div class="mui-select">
+        <select id="select-change">
+          <option value="percent">Percent Change</option>
+          <option value="gain/loss">Individual Gain/Loss</option>
+          <option value="total-gain/loss">Total Gain/Loss</option>
+        </select>
+        <label>View Change By</label>
+      </div>
+      <div class="mui-divider"></div>
+      <div class="mui-textfield">
+        <input
+          id="input-percent"
+          type="text"
+          placeholder="2%"
+          value="2%"
+          pattern="[0-9]"
+          onkeypress="return isValid(event)"
+        />
+        <label>Notify me if a prices moves by...</label>
+      </div>
+      <div class="button-container">
+        <button
+          type="button"
+          onclick="submit()"
+          class="mui-btn mui-btn--raised"
+        >
+          Save Preferences
+        </button>
+        <button type="button" onclick="about()" class="mui-btn mui-btn--raised">
+          About RH Ticker
+        </button>
+        <button
+          type="button"
+          onclick="logout()"
+          id="logout"
+          class="mui-btn mui-btn--raised"
+        >
+          Logout
+        </button>
+        <button
+          type="button"
+          onclick="quit()"
+          id="quit"
+          class="mui-btn mui-btn--raised"
+        >
+          Quit
+        </button>
+      </div>
     </div>
 
-
-
     <script>
-        const {
-            remote,
-            ipcRenderer
-        } = require('electron');
+      const { remote, ipcRenderer } = require('electron');
 
-        const selectRefresh = document.getElementById('select-refresh');
-        const selectChange = document.getElementById('select-change');
-        const selectEquity = document.getElementById('select-equity');
-        const inputPercent = document.getElementById('input-percent');
+      const selectRefresh = document.getElementById('select-refresh');
+      const selectChange = document.getElementById('select-change');
+      const selectEquity = document.getElementById('select-equity');
+      const inputPercent = document.getElementById('input-percent');
 
-        document.onkeydown = (event) => {
-            if (event.keyCode === 27) {
-                window.close();
-            }
+      document.onkeydown = event => {
+        if (event.keyCode === 27) {
+          window.close();
         }
+      };
 
-        ipcRenderer.on('preferences', (event, message) => {
-            const {
-                refreshRate,
-                viewChangeBy,
-                viewEquityBy,
-                percent,
-            } = message;
-            document.getElementById('preferences-form').style.visibility = "visible";
-            for (let i = 0; i < selectRefresh.options.length; ++i) {
-                if (selectRefresh.options[i].value == refreshRate) {
-                    selectRefresh.selectedIndex = i;
-                    break;
-                }
-            }
-            for (let i = 0; i < selectChange.options.length; ++i) {
-                if (selectChange.options[i].value === viewChangeBy) {
-                    selectChange.selectedIndex = i;
-                    break;
-                }
-            }
-            inputPercent.value = `${percent}%`;
+      ipcRenderer.on('preferences', (event, message) => {
+        const { refreshRate, viewChangeBy, viewEquityBy, percent } = message;
+        document.getElementById('preferences-form').style.visibility =
+          'visible';
+        for (let i = 0; i < selectRefresh.options.length; ++i) {
+          if (selectRefresh.options[i].value == refreshRate) {
+            selectRefresh.selectedIndex = i;
+            break;
+          }
+        }
+        for (let i = 0; i < selectChange.options.length; ++i) {
+          if (selectChange.options[i].value === viewChangeBy) {
+            selectChange.selectedIndex = i;
+            break;
+          }
+        }
+        inputPercent.value = `${percent}%`;
+      });
+
+      function submit() {
+        const refreshRate = selectRefresh.value;
+        const viewChangeBy = selectChange.value;
+        const percent = inputPercent.value.substring(
+          0,
+          inputPercent.value.length - 1
+        );
+        ipcRenderer.send('preferences-saved', {
+          refreshRate,
+          viewChangeBy,
+          percent
         });
+        window.close();
+      }
 
-        function submit() {
-            const refreshRate = selectRefresh.value;
-            const viewChangeBy = selectChange.value;
-            const percent = inputPercent.value.substring(0, inputPercent.value.length - 1);
-            ipcRenderer.send('preferences-saved', {
-                refreshRate,
-                viewChangeBy,
-                percent,
-            });
-            window.close();
+      function logout() {
+        ipcRenderer.send('logout', true);
+      }
+
+      function quit() {
+        ipcRenderer.send('app-quit', true);
+      }
+
+      function about() {
+        ipcRenderer.send('show-about', true);
+      }
+
+      function isValid(evt) {
+        const charCode = evt.which ? evt.which : event.keyCode;
+        if (
+          charCode != 37 &&
+          charCode != 46 &&
+          charCode > 31 &&
+          (charCode < 48 || charCode > 57)
+        ) {
+          return false;
         }
+        return true;
+      }
 
-        function logout() {
-            ipcRenderer.send('logout', true);
-        }
-
-        function quit() {
-            ipcRenderer.send('app-quit', true);
-        }
-
-        function about() {
-            ipcRenderer.send('show-about', true);
-        }
-
-        function isValid(evt) {
-            const charCode = (evt.which) ? evt.which : event.keyCode;
-            if (charCode != 37 && charCode != 46 && charCode > 31 && (charCode <
-                    48 || charCode > 57)) {
-                return false;
-            }
-            return true;
-        }
-
-        // You can also require other files to run in this process
-        require('../renderer.js');
+      // You can also require other files to run in this process
+      require('../renderer.js');
     </script>
-</body>
-
+  </body>
 </html>

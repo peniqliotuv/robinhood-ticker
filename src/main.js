@@ -463,7 +463,8 @@ const createLoginMenu = () => {
   return Menu.buildFromTemplate(template);
 };
 
-const createStockWindow = async (symbol, tabIndex) => {
+// tabIndex == -1 when createStockWindow is called from the search view
+const createStockWindow = async (symbol, tabIndex = -1) => {
   let data;
   let price;
   if (tabIndex === 0) {

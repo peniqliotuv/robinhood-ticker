@@ -48,26 +48,70 @@ body.equity-loss {
   margin: 0 5px;
 }
 
+#search-container .symbol {
+  width: 25%;
+  color: var(--rh-grey);
+  font-size: 14px;
+  font-weight: 900;
+}
+
+#search-container .simple-name {
+  width: 75%;
+  color: var(--rh-grey);
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#search-container .fuzzy-search-match {
+  color: var(--rh-green);
+}
+
 .searchbar {
   display: flex;
   align-items: center;
   margin: 15px 10px;
+  padding: 7.5px 20px;
+  /* padding: 7.5px; */
+
+  box-sizing: border-box;
+
+  border: 1px solid #0e0d0d;
+  border-radius: 4px;
+
+  font-weight: 200;
+  transition: border-color 150ms, box-shadow 150ms ease-out;
+  color: lightgray;
+}
+
+.searchbar:focus {
+  box-shadow: 0 0 5px rgba (81, 203, 238, 1);
+}
+
+.searchbar:hover {
+  border-color: transparent;
+  box-shadow: 0 0 4px 1px rgba(0, 0, 0, 0.01), 0 3px 24px rgba(0, 0, 0, 0.6);
+  color: white;
 }
 
 #search-input {
   border: none;
   outline: none;
-  border-bottom: 1px solid grey;
   background-color: transparent;
   margin: 0 5px;
   padding: 5px;
   transition: all 0.3s ease-in-out;
-  color: lightgray;
   width: 100%;
+  color: white;
 }
 
-.searchbar:focus {
-  box-shadow: 0 0 5px rgba(81, 203, 238, 1);
+.searchbar:hover #search-input::placeholder {
+  color: white;
+}
+
+.searchbar:hover #search-input {
+  border-color: white;
 }
 
 .container {
@@ -78,15 +122,6 @@ body.equity-loss {
   height: 400px;
   background-color: #1b1b1d;
 }
-
-/* #backdrop {
-  position: absolute;
-  height: 400px;
-  background-color: #1b1b1d;
-  width: 100vw;
-  top: 100px;
-  z-index: -1;
-} */
 
 #equity-container {
   height: 80px;
@@ -272,26 +307,6 @@ body.equity-loss {
 
 #loader.equity-loss {
   color: var(--rh-red) !important;
-}
-
-#search-container .symbol {
-  width: 25%;
-  color: var(--rh-grey);
-  font-size: 14px;
-  font-weight: 900;
-}
-
-#search-container .simple-name {
-  width: 75%;
-  color: var(--rh-grey);
-  font-size: 14px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-#search-container .fuzzy-search-match {
-  color: var(--rh-green);
 }
 
 /*!

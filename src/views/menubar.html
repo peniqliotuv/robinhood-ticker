@@ -543,6 +543,11 @@
 
           el.appendChild(symbol);
           el.appendChild(simpleName);
+          el.onclick = () => {
+            ipcRenderer.send('chart', {
+              symbol: item.symbol.toUpperCase()
+            });
+          };
           searchResultsContainer.appendChild(el);
         });
       });

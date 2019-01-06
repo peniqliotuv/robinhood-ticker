@@ -39,7 +39,7 @@
       /* Render the chart when the data has come in from ipcMain */
       ipcRenderer.on('data', (event, message) => {
         const { data, symbol, price } = message;
-        currentPrice = Number(price).toFixed(2);
+        currentPrice = price ? Number(price).toFixed(2) : 'N/A';
         const marketOpen = data[0].marketOpen;
         const marketClose = data[0].marketClose;
         const className = marketClose < marketOpen ? 'loss' : 'gain';
