@@ -378,9 +378,15 @@ const getStockQuote = async symbols => {
  * @param {string} query the query passed into the searchbar
  */
 const fuzzySearchQuery = async query => {
-  const { instruments: results } = await (await fetchWithAuth(
+  const { instruments: results = [] } = await (await fetchWithAuth(
     `https://api.robinhood.com/midlands/search/?query=${query}`
   )).json();
+  // const promises = results.map(item => fetchWithAuth(item.quote));
+  // const resolved = await Promise.all(promises);
+  // const jsonResponses = await Promise.all(resolved.map(res => res.json()));
+  // console.log(jsonResponses);
+
+  // resolved.forEach(async res => console.log(await res.json()));
   return results;
 };
 

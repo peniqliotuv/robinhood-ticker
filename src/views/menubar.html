@@ -183,12 +183,12 @@
 
       /* Event handler for search functionality */
       document.onkeyup = function(e) {
-        searchInputValue = e.target.value.trim();
+        searchInputValue = e.target.value || '';
         if (timeoutIdFetchStockQuote !== null) {
           clearTimeout(timeoutIdFetchStockQuote);
         }
         timeoutIdFetchStockQuote = window.setTimeout(() => {
-          ipcRenderer.send('fuzzy-search', searchInputValue);
+          ipcRenderer.send('fuzzy-search', searchInputValue.trim());
         }, 250);
       };
 
@@ -335,9 +335,11 @@
         isSearchViewOpen = !isSearchViewOpen;
         if (isSearchViewOpen) {
           searchContainer.style.display = 'initial';
+          mainContainer.style.display = 'none';
           searchInput.focus();
         } else {
           searchContainer.style.display = 'none';
+          mainContainer.style.display = 'flex';
           searchInput.blur();
         }
       });
@@ -505,7 +507,42 @@
         }
         searchResults.forEach(item => {
           const el = document.createElement('div');
-          el.innerHTML = item.simple_name;
+          el.className = 'stock';
+
+          const symbol = document.createElement('div');
+
+          // Fuzzy highlighting code
+          let idx = item.symbol.indexOf(searchInputValue.toUpperCase());
+          let symbolText = item.symbol;
+          if (idx !== -1) {
+            symbolText = item.symbol.substring(0, idx);
+            symbolText += `<span class="fuzzy-search-match">${item.symbol.substring(
+              idx,
+              idx + searchInputValue.length
+            )}</span>`;
+            symbolText += item.symbol.substring(idx + searchInputValue.length);
+          }
+          symbol.innerHTML = symbolText;
+          symbol.className = 'symbol';
+
+          const simpleName = document.createElement('div');
+          idx = item.simple_name.toLowerCase().indexOf(searchInputValue);
+          let simpleNameText = item.simple_name;
+          if (idx !== -1) {
+            simpleNameText = item.simple_name.substring(0, idx);
+            simpleNameText += `<span class="fuzzy-search-match">${item.simple_name.substring(
+              idx,
+              idx + searchInputValue.length
+            )}</span>`;
+            simpleNameText += item.simple_name.substring(
+              idx + searchInputValue.length
+            );
+          }
+          simpleName.className = 'simple-name';
+          simpleName.innerHTML = simpleNameText;
+
+          el.appendChild(symbol);
+          el.appendChild(simpleName);
           searchResultsContainer.appendChild(el);
         });
       });

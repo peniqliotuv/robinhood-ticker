@@ -44,15 +44,14 @@ body.equity-loss {
   display: none;
 }
 
+#search-results {
+  margin: 0 5px;
+}
+
 .searchbar {
   display: flex;
-  justify-content: center;
   align-items: center;
-  margin: 15px auto;
-  /* padding: 8px 0; */
-  /* border-radius: 5px; */
-  width: 80%;
-  /* box-shadow: 0 0 5px #303032; */
+  margin: 15px 10px;
 }
 
 #search-input {
@@ -64,6 +63,7 @@ body.equity-loss {
   padding: 5px;
   transition: all 0.3s ease-in-out;
   color: lightgray;
+  width: 100%;
 }
 
 .searchbar:focus {
@@ -272,6 +272,26 @@ body.equity-loss {
 
 #loader.equity-loss {
   color: var(--rh-red) !important;
+}
+
+#search-container .symbol {
+  width: 25%;
+  color: var(--rh-grey);
+  font-size: 14px;
+  font-weight: 900;
+}
+
+#search-container .simple-name {
+  width: 75%;
+  color: var(--rh-grey);
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#search-container .fuzzy-search-match {
+  color: var(--rh-green);
 }
 
 /*!
