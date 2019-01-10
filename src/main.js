@@ -160,7 +160,7 @@ ipcMain.on('app-quit', () => app.quit());
 ipcMain.on('show-about', (event, arg) => {
   openAboutWindow({
     icon_path: ICON_LOGO_LARGE,
-    copyright: 'Copyright (c) 2018 Jerry Tsui',
+    copyright: 'Copyright (c) 2019 Jerry Tsui',
     package_json_dir: __dirname,
     description: 'www.github.com/peniqliotuv'
   });
@@ -584,7 +584,8 @@ const initializeApp = () => {
       refreshRate: 1,
       viewChangeBy: 'gain/loss',
       viewEquityBy: 'total-equity',
-      percent: 2
+      percent: 2,
+      showToolTip: true
     });
   }
 
@@ -605,7 +606,6 @@ const initializeApp = () => {
   tray = new Tray(ICON_LOGO);
   let contextMenu;
   if (isAuthenticated()) {
-    console.log('authenticated');
     RobinHoodAPI = store.get('data');
     const equity = Number(
       RobinHoodAPI._portfolio.extended_hours_equity ||
