@@ -24,9 +24,14 @@
         <div id="tooltip-message-box">
           <span onclick="toggleToolTip(false)">x</span>
           <p id="tooltip-message-content"></p>
-          <button id="tooltip-next-button" onclick="navigateToolTip('next')">
-            NEXT
-          </button>
+          <div class="button-container">
+            <button id="tooltip-prev-button" onclick="navigateToolTip('back')">
+              Back
+            </button>
+            <button id="tooltip-next-button" onclick="navigateToolTip('next')">
+              Next
+            </button>
+          </div>
         </div>
       </div>
       <div id="equity-container">
@@ -79,12 +84,14 @@
       const CountUp = require('countup.js');
       const Mousetrap = require('mousetrap');
       const { isAfterHours } = require('../utils/stockHelpers.js');
-      const { removeClass } = require('../utils/domHelpers.js');
+      const { removeClass, addClass } = require('../utils/domHelpers.js');
       const toolTipManager = require('../utils/tooltip.js');
 
       const toolTipMessageContent = document.getElementById(
         'tooltip-message-content'
       );
+      const toolTipPrevButton = document.getElementById('tooltip-prev-button');
+      const toolTipNextButton = document.getElementById('tooltip-next-button');
       const toolTipContainer = document.getElementById('tooltip');
       const toolTipMessageBox = document.getElementById('tooltip-message-box');
       const searchInput = document.getElementById('search-input');
@@ -785,6 +792,7 @@
         if (open) {
           toolTipContainer.style.display = 'flex';
           toolTipMessageContent.innerHTML = toolTipManager.message;
+          addClass(toolTipPrevButton, 'inactive');
         } else {
           toolTipContainer.style.display = 'none';
           toolTipManager.reset();
@@ -793,11 +801,24 @@
 
       function navigateToolTip(direction) {
         if (direction === 'next') {
+          removeClass(toolTipPrevButton, 'inactive');
           const nextMessage = toolTipManager.next;
           if (nextMessage) {
             toolTipMessageContent.innerHTML = nextMessage;
           } else {
             toggleToolTip(false);
+          }
+          if (toolTipManager.tail) {
+            toolTipNextButton.innerHTML = 'Done';
+          }
+        } else if (direction === 'back') {
+          removeClass(toolTipNextButton, 'inactive');
+          const prevMessage = toolTipManager.previous;
+          if (prevMessage) {
+            toolTipMessageContent.innerHTML = prevMessage;
+          }
+          if (toolTipManager.head) {
+            addClass(toolTipPrevButton, 'inactive');
           }
         }
       }

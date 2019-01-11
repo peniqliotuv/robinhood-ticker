@@ -22,6 +22,14 @@ class ToolTipHelper {
     return this.messages[this.index];
   }
 
+  get head() {
+    return this.index === 0;
+  }
+
+  get tail() {
+    return this.index === this.messages.length - 1;
+  }
+
   reset() {
     this.index = 0;
   }

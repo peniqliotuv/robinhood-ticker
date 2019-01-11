@@ -541,6 +541,10 @@ body.equity-loss {
   flex: 4;
 }
 
+#tooltip .button-container {
+  display: flex;
+}
+
 #tooltip button {
   flex: 1.5;
   display: flex;
@@ -549,11 +553,16 @@ body.equity-loss {
   border: none;
   border-radius: 2px;
   height: 20px;
-  width: 65px;
+  width: 55px;
   color: white;
   background-color: var(--rh-green);
-  margin: 5px auto;
+  margin: 5px;
   transition: all 0.15s ease-in-out;
+}
+
+#tooltip button.inactive {
+  background-color: var(--rh-grey);
+  color: white;
 }
 
 #tooltip span {
