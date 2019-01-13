@@ -39,6 +39,7 @@
         <label>View Change By</label>
       </div>
       <div class="mui-divider"></div>
+
       <div class="mui-textfield">
         <input
           id="input-percent"
@@ -49,6 +50,16 @@
           onkeypress="return isValid(event)"
         />
         <label>Notify me if a prices moves by...</label>
+      </div>
+      <div class="mui-checkbox">
+        <label>
+          <input
+            onclick="toggleToolTip(this)"
+            id="show-tooltip"
+            type="checkbox"
+            value=""
+          />Show tooltip on start
+        </label>
       </div>
       <div class="button-container">
         <button
@@ -87,6 +98,7 @@
       const selectChange = document.getElementById('select-change');
       const selectEquity = document.getElementById('select-equity');
       const inputPercent = document.getElementById('input-percent');
+      const toolTipCheckbox = document.getElementById('show-tooltip');
 
       document.onkeydown = event => {
         if (event.keyCode === 27) {
@@ -95,7 +107,7 @@
       };
 
       ipcRenderer.on('preferences', (event, message) => {
-        const { refreshRate, viewChangeBy, viewEquityBy, percent } = message;
+        const { refreshRate, viewChangeBy, percent, showToolTip } = message;
         document.getElementById('preferences-form').style.visibility =
           'visible';
         for (let i = 0; i < selectRefresh.options.length; ++i) {
@@ -111,6 +123,9 @@
           }
         }
         inputPercent.value = `${percent}%`;
+        if (showToolTip) {
+          toolTipCheckbox.setAttribute('checked', true);
+        }
       });
 
       function submit() {
@@ -120,10 +135,12 @@
           0,
           inputPercent.value.length - 1
         );
+        const showToolTip = Boolean(toolTipCheckbox.getAttribute('checked'));
         ipcRenderer.send('preferences-saved', {
           refreshRate,
           viewChangeBy,
-          percent
+          percent,
+          showToolTip
         });
         window.close();
       }
@@ -139,6 +156,11 @@
       function about() {
         ipcRenderer.send('show-about', true);
       }
+
+      toggleToolTip = self =>
+        self.getAttribute('checked')
+          ? self.removeAttribute('checked')
+          : self.setAttribute('checked', true);
 
       function isValid(evt) {
         const charCode = evt.which ? evt.which : event.keyCode;

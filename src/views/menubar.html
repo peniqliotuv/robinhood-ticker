@@ -22,7 +22,6 @@
       <div id="tooltip">
         <div id="tooltip-overlay"></div>
         <div id="tooltip-message-box">
-          <span onclick="toggleToolTip(false)">x</span>
           <p id="tooltip-message-content"></p>
           <div class="button-container">
             <button id="tooltip-prev-button" onclick="navigateToolTip('back')">
@@ -51,6 +50,9 @@
           <input type="text" placeholder="Search" id="search-input" />
         </div>
         <div id="search-results"></div>
+        <div id="search-back-button-container" onclick="toggleSearchView()">
+          <img src="../../assets/left-arrow.png" height="20px" />
+        </div>
       </div>
       <div id="main-container" class="container">
         <div
@@ -87,6 +89,10 @@
       const { removeClass, addClass } = require('../utils/domHelpers.js');
       const toolTipManager = require('../utils/tooltip.js');
 
+      let toolTipShown = false;
+      const searchResultsBackButton = document.getElementById(
+        'search-back-button-container'
+      );
       const toolTipMessageContent = document.getElementById(
         'tooltip-message-content'
       );
@@ -94,6 +100,7 @@
       const toolTipNextButton = document.getElementById('tooltip-next-button');
       const toolTipContainer = document.getElementById('tooltip');
       const toolTipMessageBox = document.getElementById('tooltip-message-box');
+
       const searchInput = document.getElementById('search-input');
       const searchResultsContainer = document.getElementById('search-results');
       const searchContainer = document.getElementById('search-container');
@@ -354,7 +361,9 @@
       };
 
       // Search for stocks
-      Mousetrap.bind('command+f', () => {
+      Mousetrap.bind('command+f', toggleSearchView);
+
+      function toggleSearchView() {
         isSearchViewOpen = !isSearchViewOpen;
         if (isSearchViewOpen) {
           searchContainer.style.display = 'initial';
@@ -365,7 +374,7 @@
           mainContainer.style.display = 'flex';
           searchInput.blur();
         }
-      });
+      }
 
       function openPreferences() {
         ipcRenderer.send('open-preferences', true);
@@ -514,8 +523,13 @@
         */
       ipcRenderer.on('data', (event, message) => {
         data = sortData(message.data);
-        // console.log(data);
         preferences = message.preferences;
+
+        /* If it's the user's first time using the app, display the tooltip*/
+        console.log(preferences);
+        if (preferences.showToolTip && !toolTipShown) {
+          toggleToolTip(true);
+        }
         render();
       });
 
@@ -524,7 +538,6 @@
       });
 
       ipcRenderer.on('fuzzy-search', (event, searchResults) => {
-        console.log('fuzzy-search', searchResults);
         while (searchResultsContainer.hasChildNodes()) {
           searchResultsContainer.removeChild(searchResultsContainer.lastChild);
         }
@@ -573,6 +586,12 @@
           };
           searchResultsContainer.appendChild(el);
         });
+        // If there are results, hide the back button
+        if (searchResults.length > 0) {
+          addClass(searchResultsBackButton, 'down');
+        } else {
+          removeClass(searchResultsBackButton, 'down');
+        }
       });
 
       function render() {
@@ -588,11 +607,6 @@
         }
 
         console.log(preferences);
-
-        /* If it's the user's first time using the app, display the tooltip*/
-        if (preferences.showToolTip) {
-          toggleToolTip(true);
-        }
 
         const loader = document.getElementById('loader');
         loader.style.display = 'none';
@@ -790,11 +804,13 @@
 
       function toggleToolTip(open) {
         if (open) {
+          toolTipShown = true;
           toolTipContainer.style.display = 'flex';
           toolTipMessageContent.innerHTML = toolTipManager.message;
           addClass(toolTipPrevButton, 'inactive');
         } else {
           toolTipContainer.style.display = 'none';
+          toolTipNextButton.innerHTML = 'Next';
           toolTipManager.reset();
         }
       }
@@ -816,12 +832,15 @@
           const prevMessage = toolTipManager.previous;
           if (prevMessage) {
             toolTipMessageContent.innerHTML = prevMessage;
+            toolTipNextButton.innerHTML = 'Next';
           }
           if (toolTipManager.head) {
             addClass(toolTipPrevButton, 'inactive');
           }
         }
       }
+
+      /* If it's the user's first time using the app, display the tooltip*/
 
       require('../renderer.js');
     </script>

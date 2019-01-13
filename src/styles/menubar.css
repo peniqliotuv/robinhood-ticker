@@ -19,6 +19,10 @@ button {
   -webkit-app-region: no-drag;
 }
 
+button:focus {
+  outline: 0;
+}
+
 body {
   display: flex;
   font-family: 'Din-Light', sans-serif;
@@ -36,7 +40,7 @@ body {
 
 body.equity-loss {
   background-color: var(--rh-red);
-  caret-color: var(--rh-green);
+  caret-color: var(--rh-red);
 }
 
 #root {
@@ -71,6 +75,36 @@ body.equity-loss {
 
 #search-container .fuzzy-search-match {
   color: var(--rh-green);
+}
+
+#search-container #search-back-button-container {
+  position: absolute;
+  bottom: 17.5px;
+  left: 20px;
+  background-color: var(--rh-green);
+  padding: 5px;
+  display: flex;
+  border-radius: 50%;
+  box-shadow: 0 0 2px 2px #303032;
+  transition: border-color 150ms, box-shadow 150ms ease-out,
+    bottom 100ms ease-in-out;
+}
+
+#search-container #search-back-button-container.down {
+  bottom: -35px;
+}
+
+body.equity-loss #search-container #search-back-button-container {
+  background-color: var(--rh-red);
+}
+
+#search-container #search-back-button-container:hover {
+  cursor: pointer;
+  box-shadow: 0 0 4px 4px #303032;
+}
+
+body.equity-loss #search-container .fuzzy-search-match {
+  color: var(--rh-red);
 }
 
 .searchbar {
@@ -523,13 +557,13 @@ body.equity-loss {
 }
 
 #tooltip-message-box {
-  width: 65%;
-  height: 120px;
+  width: 75%;
+  height: 160px;
   background-color: var(--rh-black);
   color: var(--rh-grey);
   border-radius: 4px;
   box-sizing: border-box;
-  padding: 5px;
+  padding: 10px;
   opacity: 1;
   z-index: 2;
   display: flex;
@@ -539,6 +573,7 @@ body.equity-loss {
 
 #tooltip p {
   flex: 4;
+  font-size: 16px;
 }
 
 #tooltip .button-container {
@@ -557,12 +592,23 @@ body.equity-loss {
   color: white;
   background-color: var(--rh-green);
   margin: 5px;
+  font-weight: 100;
   transition: all 0.15s ease-in-out;
 }
 
-#tooltip button.inactive {
+body.equity-loss #tooltip button {
+  background-color: var(--rh-red);
+}
+
+#tooltip button.inactive,
+body.equity-loss #tooltip button.inactive {
   background-color: var(--rh-grey);
   color: white;
+}
+
+#tooltip button.inactive:hover {
+  cursor: not-allowed;
+  pointer-events: none;
 }
 
 #tooltip span {

@@ -57,6 +57,17 @@ input {
   background-color: var(--rh-green) !important;
 }
 
+.mui-checkbox,
+.mui-checkbox:hover {
+  display: flex;
+  width: 80vw;
+  justify-content: flex-start;
+  align-items: center;
+  color: white;
+  margin-top: 0;
+  margin-bottom: 20px;
+}
+
 .mui-btn:hover,
 #logout:hover,
 #quit:hover {

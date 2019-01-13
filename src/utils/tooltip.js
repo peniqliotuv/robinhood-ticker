@@ -3,10 +3,11 @@ class ToolTipHelper {
     this.index = 0;
     this.messages = [
       'Welcome to RH-Ticker!',
-      'Manually refresh your portfolio',
-      'Open your preferences',
-      'Switch between your portfolio and watchlist',
-      'Press Command+f to search'
+      'Manually refresh your portfolio by hitting the button in the top-left',
+      'Open your preferences by hitting the settings icon in the top-right',
+      'Switch between your portfolio and watchlist by clicking on the tabs above',
+      'Long-press on any equity to rearrange its order on the list',
+      'Press ⌘+f to search for an equity'
     ];
   }
 
