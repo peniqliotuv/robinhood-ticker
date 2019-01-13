@@ -1,8 +1,18 @@
+const defaultHeaders = {
+  Accept: '*/*',
+  'Accept-Encoding': 'gzip, deflate',
+  'Accept-Language': 'en;q=1, fr;q=0.9, de;q=0.8, ja;q=0.7, nl;q=0.6, it;q=0.5',
+  'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8',
+  'X-Robinhood-API-Version': '1.0.0',
+  Connection: 'keep-alive',
+  'User-Agent': 'Robinhood/823 (iPhone; iOS 7.1.2; Scale/2.00)'
+};
 class RobinHoodAPI {
   constructor() {
     if (!RobinHoodAPI.instance) {
       this._token = '';
       this._accountNumber = '';
+      this._refreshToken = '';
       this._positions = [];
       this._portfolio = {};
       this._watchlist = [];
@@ -17,6 +27,14 @@ class RobinHoodAPI {
 
   set token(newToken) {
     this._token = newToken;
+  }
+
+  get refreshToken() {
+    return this._refreshToken;
+  }
+
+  set refreshToken(token) {
+    this._refreshToken = token;
   }
 
   get accountNumber() {
@@ -59,7 +77,7 @@ class RobinHoodAPI {
     if (!accountNumber) {
       try {
         const res = await fetch('https://api.robinhood.com/accounts/', {
-          Authorization: `Token ${token}`
+          Authorization: `Bearer ${token}`
         });
         if (res.ok) {
           const json = await res.json();
@@ -88,10 +106,16 @@ class RobinHoodAPI {
               .filter(result => Number(result.quantity) !== 0)
               .map(async result => {
                 const instrument = await (await fetch(
-                  decodeURIComponent(result.instrument)
+                  decodeURIComponent(result.instrument),
+                  {
+                    Authorization: `Bearer ${this.token}`
+                  }
                 )).json();
                 const quote = await (await fetch(
-                  decodeURIComponent(instrument.quote)
+                  decodeURIComponent(instrument.quote),
+                  {
+                    Authorization: `Bearer ${this.token}`
+                  }
                 )).json();
                 return {
                   averageBuyPrice: result.average_buy_price,
@@ -117,7 +141,10 @@ class RobinHoodAPI {
   async getPortfolio() {
     try {
       const res = await fetch(
-        `https://api.robinhood.com/accounts/${this.accountNumber}/portfolio/`
+        `https://api.robinhood.com/accounts/${this.accountNumber}/portfolio/`,
+        {
+          Authorization: `Bearer ${this.token}`
+        }
       );
       if (res.ok) {
         return await res.json();
@@ -132,17 +159,23 @@ class RobinHoodAPI {
 
   async getWatchlist() {
     try {
-      const res = await fetch('https://api.robinhood.com/watchlists/Default/');
+      const res = await fetch('https://api.robinhood.com/watchlists/Default/', {
+        ...defaultHeaders,
+        Authorization: `Bearer ${this.token}`
+      });
       const json = await res.json();
       if (res.ok) {
         return await Promise.all(
           json.results.map(async result => {
             const instrument = await (await fetch(
-              decodeURIComponent(result.instrument)
+              decodeURIComponent(result.instrument),
+              {
+                Authorization: `Bearer ${this.token}`
+              }
             )).json();
-            return await (await fetch(
-              decodeURIComponent(instrument.quote)
-            )).json();
+            return await (await fetch(decodeURIComponent(instrument.quote), {
+              Authorization: `Bearer ${this.token}`
+            })).json();
           })
         );
       }
@@ -153,13 +186,16 @@ class RobinHoodAPI {
 
   async login(username, password, mfa_code) {
     try {
-      const res = await fetch('https://api.robinhood.com/api-token-auth/', {
+      const res = await fetch('https://api.robinhood.com/oauth2/token/', {
         method: 'POST',
         Accept: 'application/json',
+        mode: 'cors',
         body: JSON.stringify({
           username,
           password,
-          mfa_code
+          mfa_code,
+          grant_type: 'password',
+          client_id: 'c82SH0WZOsabOXGP2sxqcj34FxkvfnWRZBKlBjFS'
         })
       });
       const json = await res.json();
@@ -167,7 +203,8 @@ class RobinHoodAPI {
         return {
           success: true,
           twoFactorAuthRequired: Boolean(json.mfa_required),
-          token: json.token || null
+          token: json.access_token || null,
+          refreshToken: json.refresh_token || null
         };
       } else {
         // Get the error message from RobinHood and re-throw it
@@ -180,6 +217,7 @@ class RobinHoodAPI {
         throw new Error(message);
       }
     } catch (error) {
+      console.log(error);
       return {
         success: false,
         error: error.message

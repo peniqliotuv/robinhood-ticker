@@ -87,6 +87,7 @@
           /* RobinhoodAPI.login() makes a post request, so need to change content-type to application/json*/
           remote.getGlobal('addContentTypeHeaders')();
           const res = await RobinHoodAPI.login(username, password, authCode);
+          console.log(res);
           if (res.success && res.twoFactorAuthRequired) {
             loginContainer.removeChild(loader);
             userInput.style.visibility = 'visible';
@@ -99,6 +100,8 @@
             loginContainer.style.paddingBottom = '99px';
           } else if (res.success && !res.twoFactorAuthRequired) {
             RobinHoodAPI.token = res.token;
+            RobinHoodAPI.refreshToken = res.refreshToken;
+            console.log(RobinHoodAPI);
             remote.getGlobal('addAuthHeaders')(RobinHoodAPI.token);
             // 2FA succeeded
             // Retrieve all intial information
@@ -106,18 +109,19 @@
             const accountNumber = await RobinHoodAPI.getAccountNumber();
             RobinHoodAPI.accountNumber = accountNumber;
 
-            const results = await Promise.all([
-              RobinHoodAPI.getPositions(),
-              RobinHoodAPI.getPortfolio(),
-              RobinHoodAPI.getWatchlist()
-            ]);
-            RobinHoodAPI.positions = results[0];
-            RobinHoodAPI.portfolio = results[1];
-            RobinHoodAPI.watchlist = results[2];
+            // const results = await Promise.all([
+            //   RobinHoodAPI.getPositions(),
+            //   RobinHoodAPI.getPortfolio(),
+            //   RobinHoodAPI.getWatchlist()
+            // ]);
+            // RobinHoodAPI.positions = results[0];
+            // RobinHoodAPI.portfolio = results[1];
+            // RobinHoodAPI.watchlist = results[2];
 
             ipcRenderer.send('data', RobinHoodAPI);
             window.close();
           } else if (res.error) {
+            console.log('response had error');
             loginContainer.removeChild(loader);
             userInput.style.visibility = 'visible';
             passwordInput.style.visibility = 'visible';
@@ -130,6 +134,13 @@
           }
         } catch (e) {
           console.error(e);
+          loginContainer.removeChild(loader);
+          userInput.style.visibility = 'visible';
+          passwordInput.style.visibility = 'visible';
+          if (document.getElementById('authCode')) {
+            document.getElementById('authCode').style.visibility = 'visible';
+          }
+          displayErrorTheme();
         }
       }
 

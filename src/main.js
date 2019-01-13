@@ -57,8 +57,19 @@ let win = null;
 let refresh;
 
 /* When we receieve the initial load from the login */
-ipcMain.on('data', (event, arg) => {
+ipcMain.on('data', async (event, arg) => {
   RobinHoodAPI = arg;
+  // Populate the RobinhoodAPI object before we send the data to the actual HTML file
+  try {
+    await Promise.all([
+      refreshPositions(RobinHoodAPI._accountNumber),
+      refreshPortfolio(RobinHoodAPI._accountNumber),
+      refreshWatchlist()
+    ]);
+  } catch (e) {
+    console.log(e);
+  }
+
   store.set('data', RobinHoodAPI);
   const equity = Number(
     RobinHoodAPI._portfolio.extended_hours_equity ||
@@ -77,7 +88,8 @@ ipcMain.on('data', (event, arg) => {
       tray,
       resizable: false,
       webPreferences: {
-        experimentalFeatures: true
+        experimentalFeatures: true,
+        nodeIntegration: true
       }
     });
     mb.window.webContents.on('did-finish-load', () => {
@@ -122,10 +134,19 @@ ipcMain.on('chart', (event, data) => {
 
 ipcMain.on('logout', async () => {
   try {
-    await fetchWithAuth('https://api.robinhood.com/api-token-logout/', {
-      method: 'POST',
-      Accept: 'application/json'
-    });
+    const res = await fetchWithAuth(
+      'https://api.robinhood.com/oauth2/revoke_token/',
+      {
+        method: 'POST',
+        Accept: '*/*',
+        'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8',
+        body: JSON.stringify({
+          client_id: 'c82SH0WZOsabOXGP2sxqcj34FxkvfnWRZBKlBjFS',
+          token: RobinHoodAPI.refreshToken
+        })
+      }
+    );
+    console.log(await res.json());
     RobinHoodAPI = null;
     const contextMenu = createLoginMenu();
     mb.tray.setTitle('');
@@ -219,9 +240,15 @@ const changeRefreshRate = rate => {
 const fetchWithAuth = (url, opts) => {
   const options = Object.assign({}, opts, {
     headers: {
-      Authorization: `Token ${RobinHoodAPI._token}`
+      Authorization: `Bearer ${RobinHoodAPI._token}`
     }
   });
+  // const options = {
+  //   ...opts,
+  //   headers: {
+  //     Authorization: `Bearer ${RobinHoodAPI._token}`
+  //   }
+  // };
   return timeout(TIMEOUT_MS, fetch(url, options));
 };
 
@@ -621,9 +648,11 @@ const initializeApp = () => {
       height: 500,
       tray,
       resizable: false,
+      // For debugging
       alwaysOnTop: process.env.NODE_ENV === 'development',
       webPreferences: {
-        experimentalFeatures: true
+        experimentalFeatures: true,
+        nodeIntegration: true
       }
     });
     mb.tray.setTitle(`$${equity}`);
@@ -649,7 +678,6 @@ const initializeApp = () => {
 
     refresh = startRefresh();
   } else {
-    console.log('not authenticated');
     contextMenu = createLoginMenu();
     tray.setContextMenu(contextMenu);
     if (process.platform === 'win32') {
@@ -701,9 +729,15 @@ global.addAuthHeaders = token => {
   session.defaultSession.webRequest.onBeforeSendHeaders(
     filter,
     (details, callback) => {
+      details.requestHeaders['Connection'] = 'keep-alive';
+      details.requestHeaders['Accept-Language'] =
+        'en;q=1, fr;q=0.9, de;q=0.8, ja;q=0.7, nl;q=0.6, it;q=0.5';
+      details.requestHeaders['X-Robinhood-API-Version'] = '1.0.0';
       details.requestHeaders['Origin'] = 'electron://robinhood-app';
       details.requestHeaders['content-type'] = 'application/json';
-      details.requestHeaders['Authorization'] = `Token ${token}`;
+      details.requestHeaders['User-Agent'] =
+        'Robinhood/823 (iPhone; iOS 7.1.2; Scale/2.00)';
+      details.requestHeaders['Authorization'] = `Bearer ${token}`;
       callback({
         cancel: false,
         requestHeaders: details.requestHeaders
@@ -715,7 +749,7 @@ global.addAuthHeaders = token => {
 global.addContentTypeHeaders = () => {
   session.defaultSession.webRequest.onBeforeSendHeaders((details, callback) => {
     details.requestHeaders['Origin'] = 'electron://robinhood-app';
-    details.requestHeaders['content-type'] = 'application/json';
+    details.requestHeaders['Content-Type'] = 'application/json';
     callback({
       cancel: false,
       requestHeaders: details.requestHeaders
