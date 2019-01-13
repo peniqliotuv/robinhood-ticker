@@ -23,6 +23,11 @@ button:focus {
   outline: 0;
 }
 
+button:hover {
+  cursor: pointer;
+  filter: brightness(82.5%);
+}
+
 body {
   display: flex;
   font-family: 'Din-Light', sans-serif;
@@ -609,6 +614,7 @@ body.equity-loss #tooltip button.inactive {
 #tooltip button.inactive:hover {
   cursor: not-allowed;
   pointer-events: none;
+  filter: none;
 }
 
 #tooltip span {

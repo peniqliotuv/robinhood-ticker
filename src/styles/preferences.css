@@ -50,8 +50,8 @@ input {
   justify-content: center;
   align-items: center;
   border-radius: 2px;
-  height: 35px;
-  width: 180px;
+  height: 30px;
+  width: 160px;
   margin-left: 0 !important;
   color: white !important;
   background-color: var(--rh-green) !important;

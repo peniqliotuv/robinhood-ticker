@@ -29,6 +29,11 @@ button {
   -webkit-app-region: no-drag;
 }
 
+button:hover {
+  cursor: pointer;
+  filter: brightness(82.5%);
+}
+
 input {
   font-family: 'Din-Light';
   letter-spacing: 0.05em;
