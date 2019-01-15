@@ -17,8 +17,41 @@ const menubar = require('menubar');
 const Store = require('electron-store');
 const log = require('electron-log');
 const notificationMapper = require('./notification-mapper');
-const { timeout, TimeoutError } = require('./utils/timeout');
+const { TimeoutError, UnauthorizedError } = require('./utils/error');
+const { timeout } = require('./utils/timeout');
 const StockAPI = require('./StockAPI');
+
+/**
+ * Logs out of the Robinhood account and closes the tray
+ */
+const logoutAndReturnToLoginMenu = async () => {
+  try {
+    const res = await fetchWithAuth(
+      'https://api.robinhood.com/oauth2/revoke_token/',
+      {
+        method: 'POST',
+        Accept: '*/*',
+        'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8',
+        body: JSON.stringify({
+          client_id: 'c82SH0WZOsabOXGP2sxqcj34FxkvfnWRZBKlBjFS',
+          token: RobinHoodAPI._refreshToken
+        })
+      }
+    );
+    console.log(await res.json());
+    RobinHoodAPI = null;
+    const contextMenu = createLoginMenu();
+    mb.tray.setTitle('');
+    mb.tray.setContextMenu(contextMenu);
+    mb = null;
+    if (preferences !== null) {
+      preferences.close();
+    }
+  } catch (e) {
+    console.error(e);
+    console.error(e.stack);
+  }
+};
 
 /* Where we store user preferences */
 const store = new Store();
@@ -132,34 +165,7 @@ ipcMain.on('chart', (event, data) => {
   createStockWindow(symbol, tabIndex);
 });
 
-ipcMain.on('logout', async () => {
-  try {
-    const res = await fetchWithAuth(
-      'https://api.robinhood.com/oauth2/revoke_token/',
-      {
-        method: 'POST',
-        Accept: '*/*',
-        'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8',
-        body: JSON.stringify({
-          client_id: 'c82SH0WZOsabOXGP2sxqcj34FxkvfnWRZBKlBjFS',
-          token: RobinHoodAPI.refreshToken
-        })
-      }
-    );
-    console.log(await res.json());
-    RobinHoodAPI = null;
-    const contextMenu = createLoginMenu();
-    mb.tray.setTitle('');
-    mb.tray.setContextMenu(contextMenu);
-    mb = null;
-    if (preferences !== null) {
-      preferences.close();
-    }
-  } catch (e) {
-    console.error(e);
-    console.error(e.stack);
-  }
-});
+ipcMain.on('logout', logoutAndReturnToLoginMenu);
 
 ipcMain.on('manual-refresh', async (event, arg) => {
   console.log('Manual Refresh received');
@@ -271,70 +277,65 @@ const refreshAccountData = async accountNumber => {
   } catch (e) {
     if (e instanceof TimeoutError) {
       console.error('Timeout Error', e);
+    } else if (e instanceof UnauthorizedError) {
+      console.log('Unauthorized Error');
+      console.log(e.stack);
+      await refreshAuthToken(RobinHoodAPI._refreshToken);
+      // logoutAndReturnToLoginMenu();
     }
   }
 };
 
 const refreshPositions = async accountNumber => {
   console.time('refreshPositions');
-  try {
-    const res = await fetchWithAuth(
-      `https://api.robinhood.com/accounts/${accountNumber}/positions/`
+  const res = await fetchWithAuth(
+    `https://api.robinhood.com/accounts/${accountNumber}/positions/`
+  );
+  const json = await res.json();
+  if (res.ok) {
+    const transformed = await Promise.all(
+      json.results
+        .filter(result => Number(result.quantity) !== 0)
+        .map(async result => {
+          const instrument = await (await fetchWithAuth(
+            decodeURIComponent(result.instrument)
+          )).json();
+          const quote = await (await fetchWithAuth(
+            decodeURIComponent(instrument.quote)
+          )).json();
+          return {
+            averageBuyPrice: result.average_buy_price,
+            instrument: result.instrument,
+            quantity: Number(result.quantity),
+            quote: quote,
+            currentPrice: quote.last_traded_price,
+            symbol: instrument.symbol,
+            name: instrument.name,
+            instrument: instrument
+          };
+        })
     );
-    const json = await res.json();
-    if (res.ok) {
-      const transformed = await Promise.all(
-        json.results
-          .filter(result => Number(result.quantity) !== 0)
-          .map(async result => {
-            const instrument = await (await fetchWithAuth(
-              decodeURIComponent(result.instrument)
-            )).json();
-            const quote = await (await fetchWithAuth(
-              decodeURIComponent(instrument.quote)
-            )).json();
-            return {
-              averageBuyPrice: result.average_buy_price,
-              instrument: result.instrument,
-              quantity: Number(result.quantity),
-              quote: quote,
-              currentPrice: quote.last_traded_price,
-              symbol: instrument.symbol,
-              name: instrument.name,
-              instrument: instrument
-            };
-          })
-      );
-      RobinHoodAPI._positions = transformed;
-    } else if (res.status === 401) {
-      console.log('refreshPositions unauthorized');
-    } else {
-      throw new Error('Could not retrieve positions');
-    }
-  } catch (e) {
-    if (e instanceof TimeoutError) {
-      console.error('Timeout Error', e);
-    }
+    RobinHoodAPI._positions = transformed;
+  } else if (res.status === 401) {
+    throw new UnauthorizedError();
+  } else {
+    throw new Error('Could not retrieve positions');
   }
   console.timeEnd('refreshPositions');
 };
 
 const refreshPortfolio = async accountNumber => {
   console.time('refreshPortfolio');
-  try {
-    const res = await fetchWithAuth(
-      `https://api.robinhood.com/accounts/${accountNumber}/portfolio/`
-    );
-    const json = await res.json();
-    if (res.ok) {
-      RobinHoodAPI._portfolio = json;
-    } else if (res.status === 401) {
-      console.log('refreshPortfolio unauthorized');
-    } else {
-      throw new Error('Could not retrieve portfolio');
-    }
-  } catch (e) {
-    console.error(e);
+  const res = await fetchWithAuth(
+    `https://api.robinhood.com/accounts/${accountNumber}/portfolio/`
+  );
+  const json = await res.json();
+  if (res.ok) {
+    RobinHoodAPI._portfolio = json;
+  } else if (res.status === 401) {
+    throw new UnauthorizedError();
+  } else {
+    throw new Error('Could not retrieve portfolio');
   }
   console.timeEnd('refreshPortfolio');
 };
@@ -344,43 +345,61 @@ const refreshPortfolio = async accountNumber => {
  */
 const refreshWatchlist = async () => {
   console.time('refreshWatchlist');
-  try {
-    const res = await fetchWithAuth(
-      'https://api.robinhood.com/watchlists/Default/'
+  const res = await fetchWithAuth(
+    'https://api.robinhood.com/watchlists/Default/'
+  );
+  const json = await res.json();
+  if (res.ok) {
+    const watchlistInstruments = await Promise.all(
+      json.results.map(async result => {
+        return await (await fetchWithAuth(
+          decodeURIComponent(result.instrument)
+        )).json();
+      })
     );
-    const json = await res.json();
-    if (res.ok) {
-      const watchlistInstruments = await Promise.all(
-        json.results.map(async result => {
-          return await (await fetchWithAuth(
-            decodeURIComponent(result.instrument)
-          )).json();
-        })
-      );
-      const queryString = watchlistInstruments
-        .map(instrument => instrument.symbol)
-        .join(',');
-      const watchlistQuotes = await getStockQuote(queryString);
-      RobinHoodAPI._watchlist = watchlistQuotes.filter(quote => {
-        for (let position of RobinHoodAPI._positions) {
-          if (position.symbol === quote.symbol) {
-            return false;
-          }
+    const queryString = watchlistInstruments
+      .map(instrument => instrument.symbol)
+      .join(',');
+    const watchlistQuotes = await getStockQuote(queryString);
+    RobinHoodAPI._watchlist = watchlistQuotes.filter(quote => {
+      for (let position of RobinHoodAPI._positions) {
+        if (position.symbol === quote.symbol) {
+          return false;
         }
-        return true;
-      });
-    } else if (res.status === 401) {
-      console.log('refreshWatchlist unauthorized');
-    } else {
-      console.log(res.status);
-    }
-    console.timeEnd('refreshWatchlist');
+      }
+      return true;
+    });
+  } else if (res.status === 401) {
+    throw new UnauthorizedError();
+  } else {
+    throw new Error('Could not refresh watchList');
+  }
+  console.timeEnd('refreshWatchlist');
+};
+
+const refreshAuthToken = async refreshToken => {
+  console.log(refreshToken);
+  try {
+    const res = await fetchWithAuth('https://api.robinhood.com/oauth2/token/', {
+      method: 'POST',
+      Accept: '*/*',
+      body: JSON.stringify({
+        client_id: 'c82SH0WZOsabOXGP2sxqcj34FxkvfnWRZBKlBjFS',
+        grant_type: 'refresh_token',
+        refresh_token: refreshToken
+      }),
+      'Accept-Encoding': 'gzip, deflate',
+      'Accept-Language':
+        'en;q=1, fr;q=0.9, de;q=0.8, ja;q=0.7, nl;q=0.6, it;q=0.5',
+      'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8',
+      Connection: 'keep-alive',
+      'X-Robinhood-API-Version': '1.152.0'
+    });
+    const json = await res.json();
+    console.log(json);
   } catch (e) {
-    if (e instanceof TimeoutError) {
-      console.error('Timeout Error', e);
-    } else {
-      console.error('Other error: ', e);
-    }
+    console.log('error in refresh auth token');
+    console.log(e);
   }
 };
 
@@ -409,12 +428,6 @@ const fuzzySearchQuery = async query => {
   const { instruments: results = [] } = await (await fetchWithAuth(
     `https://api.robinhood.com/midlands/search/?query=${query}`
   )).json();
-  // const promises = results.map(item => fetchWithAuth(item.quote));
-  // const resolved = await Promise.all(promises);
-  // const jsonResponses = await Promise.all(resolved.map(res => res.json()));
-  // console.log(jsonResponses);
-
-  // resolved.forEach(async res => console.log(await res.json()));
   return results;
 };
 
@@ -642,7 +655,7 @@ const initializeApp = () => {
       tray,
       resizable: false,
       // For debugging
-      alwaysOnTop: process.env.NODE_ENV === 'development',
+      // alwaysOnTop: process.env.NODE_ENV === 'development',
       webPreferences: {
         experimentalFeatures: true,
         nodeIntegration: true
