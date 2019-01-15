@@ -14,13 +14,11 @@ The latest release for MacOS and Windows is version 3.0.0: https://github.com/pe
 
 ## Features
 
-- Automatic refresh intervals (1, 2, 5, 15 minutes)
-
 - Tracking the total value of your stock portfolio
 
-- Tracking your watchlist
-
 - Tracking your portfolio/watchlist with an interactive chart
+
+- Searching for equities traded on Robinhood
 
 - Tracking the performance of each individual asset in your portfolio
 
@@ -39,6 +37,10 @@ Authenticating with Robinhood
 Chart view
 
 <p align="center"><img src="https://media.giphy.com/media/836KLcR5aQBaowYL6p/giphy.gif" width="480" height="352" /></p>
+
+Search
+
+<p align="center"><img src="https://thumbs.gfycat.com/ColdChubbyIrishdraughthorse-small.gif"  height="352px" /></p>
 
 ## Releases
 
