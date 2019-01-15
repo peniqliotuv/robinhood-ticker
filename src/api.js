@@ -1,8 +1,18 @@
+const defaultHeaders = {
+  Accept: '*/*',
+  'Accept-Encoding': 'gzip, deflate',
+  'Accept-Language': 'en;q=1, fr;q=0.9, de;q=0.8, ja;q=0.7, nl;q=0.6, it;q=0.5',
+  'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8',
+  'X-Robinhood-API-Version': '1.0.0',
+  Connection: 'keep-alive',
+  'User-Agent': 'Robinhood/823 (iPhone; iOS 7.1.2; Scale/2.00)'
+};
 class RobinHoodAPI {
   constructor() {
     if (!RobinHoodAPI.instance) {
       this._token = '';
       this._accountNumber = '';
+      this._refreshToken = '';
       this._positions = [];
       this._portfolio = {};
       this._watchlist = [];
@@ -17,6 +27,14 @@ class RobinHoodAPI {
 
   set token(newToken) {
     this._token = newToken;
+  }
+
+  get refreshToken() {
+    return this._refreshToken;
+  }
+
+  set refreshToken(token) {
+    this._refreshToken = token;
   }
 
   get accountNumber() {
@@ -52,17 +70,14 @@ class RobinHoodAPI {
   }
 
   async getAccountNumber() {
-    const {
-      token,
-      accountNumber
-    } = this;
+    const { token, accountNumber } = this;
     if (!token) {
       throw new Error('Token must be non-null');
     }
     if (!accountNumber) {
       try {
         const res = await fetch('https://api.robinhood.com/accounts/', {
-          Authorization: `Token ${token}`
+          Authorization: `Bearer ${token}`
         });
         if (res.ok) {
           const json = await res.json();
@@ -88,25 +103,31 @@ class RobinHoodAPI {
           const json = await res.json();
           const transformed = await Promise.all(
             json.results
-            .filter(result => Number(result.quantity) !== 0)
-            .map(async result => {
-              const instrument = await (await fetch(
-                decodeURIComponent(result.instrument)
-              )).json();
-              const quote = await (await fetch(
-                decodeURIComponent(instrument.quote)
-              )).json();
-              return {
-                averageBuyPrice: result.average_buy_price,
-                instrument: result.instrument,
-                quantity: Number(result.quantity),
-                quote: quote,
-                currentPrice: quote.last_traded_price,
-                symbol: instrument.symbol,
-                name: instrument.name,
-                instrument: instrument
-              };
-            })
+              .filter(result => Number(result.quantity) !== 0)
+              .map(async result => {
+                const instrument = await (await fetch(
+                  decodeURIComponent(result.instrument),
+                  {
+                    Authorization: `Bearer ${this.token}`
+                  }
+                )).json();
+                const quote = await (await fetch(
+                  decodeURIComponent(instrument.quote),
+                  {
+                    Authorization: `Bearer ${this.token}`
+                  }
+                )).json();
+                return {
+                  averageBuyPrice: result.average_buy_price,
+                  instrument: result.instrument,
+                  quantity: Number(result.quantity),
+                  quote: quote,
+                  currentPrice: quote.last_traded_price,
+                  symbol: instrument.symbol,
+                  name: instrument.name,
+                  instrument: instrument
+                };
+              })
           );
           return transformed;
         }
@@ -120,7 +141,10 @@ class RobinHoodAPI {
   async getPortfolio() {
     try {
       const res = await fetch(
-        `https://api.robinhood.com/accounts/${this.accountNumber}/portfolio/`
+        `https://api.robinhood.com/accounts/${this.accountNumber}/portfolio/`,
+        {
+          Authorization: `Bearer ${this.token}`
+        }
       );
       if (res.ok) {
         return await res.json();
@@ -135,17 +159,23 @@ class RobinHoodAPI {
 
   async getWatchlist() {
     try {
-      const res = await fetch('https://api.robinhood.com/watchlists/Default/');
+      const res = await fetch('https://api.robinhood.com/watchlists/Default/', {
+        ...defaultHeaders,
+        Authorization: `Bearer ${this.token}`
+      });
       const json = await res.json();
       if (res.ok) {
         return await Promise.all(
           json.results.map(async result => {
             const instrument = await (await fetch(
-              decodeURIComponent(result.instrument)
+              decodeURIComponent(result.instrument),
+              {
+                Authorization: `Bearer ${this.token}`
+              }
             )).json();
-            return await (await fetch(
-              decodeURIComponent(instrument.quote)
-            )).json();
+            return await (await fetch(decodeURIComponent(instrument.quote), {
+              Authorization: `Bearer ${this.token}`
+            })).json();
           })
         );
       }
@@ -156,13 +186,16 @@ class RobinHoodAPI {
 
   async login(username, password, mfa_code) {
     try {
-      const res = await fetch('https://api.robinhood.com/api-token-auth/', {
+      const res = await fetch('https://api.robinhood.com/oauth2/token/', {
         method: 'POST',
         Accept: 'application/json',
+        mode: 'cors',
         body: JSON.stringify({
           username,
           password,
-          mfa_code
+          mfa_code,
+          grant_type: 'password',
+          client_id: 'c82SH0WZOsabOXGP2sxqcj34FxkvfnWRZBKlBjFS'
         })
       });
       const json = await res.json();
@@ -170,16 +203,12 @@ class RobinHoodAPI {
         return {
           success: true,
           twoFactorAuthRequired: Boolean(json.mfa_required),
-          token: json.token || null
+          token: json.access_token || null,
+          refreshToken: json.refresh_token || null
         };
       } else {
         // Get the error message from RobinHood and re-throw it
-        let message = '';
-        if (json.non_field_errors) {
-          message = json.non_field_errors[0];
-        } else if (json.mfa_code) {
-          message = json.mfa_code[0];
-        }
+        const message = json.detail;
         throw new Error(message);
       }
     } catch (error) {

@@ -1,107 +1,107 @@
 @font-face {
-    font-family: 'Din';
-    src: url('../../assets/DIN-Medium.ttf');
+  font-family: 'Din';
+  src: url('../../assets/DIN-Medium.ttf');
 }
 
 @font-face {
-    font-family: 'Din-Light';
-    src: url('../../assets/DIN-Light.ttf');
+  font-family: 'Din-Light';
+  src: url('../../assets/DIN-Light.ttf');
 }
 
 body {
-    font-family: 'Din-Light', sans-serif;
-    font-weight: 100;
-    user-select: none;
-    background-color: #212025;
-    -webkit-app-region: drag;
-    overflow-y: hidden;
+  font-family: 'Din-Light', sans-serif;
+  font-weight: 100;
+  user-select: none;
+  background-color: #212025;
+  -webkit-app-region: drag;
+  overflow-y: hidden;
 }
 
 :root {
-    --rh-green: #21ce99;
-    --rh-red: #f45531;
+  --rh-green: #21ce99;
+  --rh-red: #f45531;
 }
 
 #chart {
-    padding: 0px 20px;
+  padding: 0px 20px;
 }
 
 span {
-    color: white !important;
-    font-size: 14px !important;
+  color: white !important;
+  font-size: 14px !important;
 }
 
 #title-container {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: flex-start;
-    height: 13.5vh;
-    color: white;
-    padding: 10px 35px
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  height: 13.5vh;
+  color: white;
+  padding: 10px 35px;
 }
 
-#title-container>.title {
-    font-family: 'Din';
-    font-size: 36px;
+#title-container > .title {
+  font-family: 'Din';
+  font-size: 36px;
 }
 
-#title-container>.tooltip {
-    margin-top: 5px;
-    color: #e6e4e7;
-    font-size: 20px;
+#title-container > .tooltip {
+  margin-top: 5px;
+  color: #e6e4e7;
+  font-size: 20px;
 }
 
 #vr {
-    width: 1px;
-    background-color: #8c8c8e;
-    position: absolute;
-    height: 465px;
-    top: 132px;
-    visibility: hidden;
+  width: 1px;
+  background-color: #8c8c8e;
+  position: absolute;
+  height: 465px;
+  top: 132px;
+  visibility: hidden;
 }
 
-#vr>#time {
-    color: #8c8c8e;
-    position: relative;
-    top: -40px;
-    display: inline-block;
-    width: 70px;
-    left: -29.5px;
+#vr > #time {
+  color: #8c8c8e;
+  position: relative;
+  top: -40px;
+  display: inline-block;
+  width: 70px;
+  left: -29.5px;
 }
 
-.gain>span {
-    color: var(--rh-green) !important;
+.gain > span {
+  color: var(--rh-green) !important;
 }
 
-.loss>span {
-    color: var(--rh-red) !important;
+.loss > span {
+  color: var(--rh-red) !important;
 }
 
 .ct-line.ct-threshold-above,
 .ct-point.ct-threshold-above,
 .ct-bar.ct-threshold-above {
-    stroke: var(--rh-green);
+  stroke: var(--rh-green);
 }
 
 .ct-line.ct-threshold-below,
 .ct-point.ct-threshold-below,
 .ct-bar.ct-threshold-below {
-    stroke: var(--rh-red);
+  stroke: var(--rh-red);
 }
 
 .ct-area.ct-threshold-above {
-    fill: var(--rh-green);
+  fill: var(--rh-green);
 }
 
 .ct-area.ct-threshold-below {
-    fill: var(--rh-red);
+  fill: var(--rh-red);
 }
 
 .stock-tooltip.chartist-tooltip {
-    background-color: var(--rh-green);
+  background-color: var(--rh-green);
 }
 
 .stock-tooltip.chartist-tooltip::before {
-    background-color: var(--rh-green);
+  background-color: var(--rh-green);
 }
