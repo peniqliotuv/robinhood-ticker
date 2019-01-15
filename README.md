@@ -44,7 +44,7 @@ Search
 
 ## Releases
 
-Latest Release: https://github.com/peniqliotuv/robinhood-ticker/releases/tag/v2.4.0
+Latest Release: https://github.com/peniqliotuv/robinhood-ticker/releases/tag/v3.0.0
 
 ## Built With
 
