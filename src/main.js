@@ -144,7 +144,6 @@ ipcMain.on('data', async (event, arg) => {
 });
 
 ipcMain.on('preferences-saved', (event, arg) => {
-  console.log('Preferences Saved!');
   console.log(arg);
   store.set('preferences', arg);
   /* Send the new preferences to the menubar and update the notificationMapper */
@@ -231,17 +230,6 @@ const startRefresh = () => {
   }, refreshRate);
 };
 
-const changeRefreshRate = rate => {
-  console.log(`Changing refresh rate to: ${rate}`);
-  const preferences = store.get('preferences');
-  const newPreferences = Object.assign({}, preferences, {
-    refreshRate: rate
-  });
-  store.set('preferences', newPreferences);
-  clearInterval(refresh);
-  refresh = startRefresh();
-};
-
 const fetchWithAuth = (url, opts) => {
   const options = {
     ...opts,
@@ -280,8 +268,7 @@ const refreshAccountData = async accountNumber => {
     } else if (e instanceof UnauthorizedError) {
       console.log('Unauthorized Error');
       console.log(e.stack);
-      await refreshAuthToken(RobinHoodAPI._refreshToken);
-      // logoutAndReturnToLoginMenu();
+      await logoutAndReturnToLoginMenu();
     }
   }
 };
@@ -425,7 +412,7 @@ const getStockQuote = async symbols => {
  * @param {string} query the query passed into the searchbar
  */
 const fuzzySearchQuery = async query => {
-  const { instruments: results = [] } = await (await fetchWithAuth(
+  const { instruments: results = [] } = await (await fetch(
     `https://api.robinhood.com/midlands/search/?query=${query}`
   )).json();
   return results;
