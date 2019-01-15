@@ -10,6 +10,7 @@
 
 :root {
   --rh-green: #21ce99;
+  --rh-grey: #fafafa;
   --rh-red: #f45531;
 }
 
@@ -23,15 +24,11 @@ body {
   font-weight: 100;
   user-select: none;
   -webkit-app-region: drag;
+  caret-color: var(--rh-green);
 }
 
 button {
   -webkit-app-region: no-drag;
-}
-
-button:hover {
-  cursor: pointer;
-  filter: brightness(82.5%);
 }
 
 input {
@@ -45,8 +42,8 @@ input {
   height: 415px;
   background-color: #212025;
   width: 100vw;
-  border-radius: 2px;
-  top: 75px;
+  border-radius: 0 0 2px 2px;
+  top: 45px;
   z-index: -1;
 }
 
@@ -55,25 +52,34 @@ input {
   justify-content: center;
   align-items: center;
   flex-direction: column;
-  margin-top: 20px;
-  padding-top: 20px;
-  padding-left: 15px;
-  padding-right: 15px;
-  padding-bottom: 160px;
-  border-radius: 2px;
-  background-color: #303032;
+  margin-top: 30px;
+  border-radius: 4px;
 }
 
 #login-container > input {
   margin: 10px 0;
-  border-radius: 2px;
+  border-radius: 4px;
   border: none;
   font-size: 18px;
-  width: 225px;
+  width: 200px;
   padding: 10px;
 }
 
+#login-container .title {
+  align-self: flex-start;
+}
+
+#login-container .title > p {
+  font-family: 'Din';
+  color: var(--rh-grey);
+  font-size: 18px;
+}
+
 /* Ugh */
+
+.invalid {
+  caret-color: var(--rh-red);
+}
 
 .invalid > input::placeholder {
   color: var(--rh-red) !important;
@@ -105,11 +111,12 @@ input {
   justify-content: center;
   align-items: center;
   background-color: white;
-  border-radius: 2px;
+  border-radius: 4px;
   height: 40px;
-  width: 275px;
+  width: 120px;
   color: white;
   background-color: var(--rh-green);
+  transition: filter 150ms ease-in-out;
 }
 
 .button:active {
@@ -118,6 +125,7 @@ input {
 
 .button:hover {
   cursor: pointer;
+  filter: brightness(82.5%);
 }
 
 /*!

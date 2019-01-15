@@ -188,10 +188,9 @@ ipcMain.on('show-about', (event, arg) => {
 });
 
 ipcMain.on('get-stock-quote', async (event, symbols) => {
-  console.log('get-stock-quote', symbols);
   try {
     const quote = await getStockQuote(symbols);
-    console.log(quote);
+
     mb.window.webContents.send('stock-quote', quote);
   } catch (e) {
     console.error(e);
@@ -238,17 +237,12 @@ const changeRefreshRate = rate => {
 };
 
 const fetchWithAuth = (url, opts) => {
-  const options = Object.assign({}, opts, {
+  const options = {
+    ...opts,
     headers: {
       Authorization: `Bearer ${RobinHoodAPI._token}`
     }
-  });
-  // const options = {
-  //   ...opts,
-  //   headers: {
-  //     Authorization: `Bearer ${RobinHoodAPI._token}`
-  //   }
-  // };
+  };
   return timeout(TIMEOUT_MS, fetch(url, options));
 };
 
@@ -312,6 +306,8 @@ const refreshPositions = async accountNumber => {
           })
       );
       RobinHoodAPI._positions = transformed;
+    } else if (res.status === 401) {
+      console.log('refreshPositions unauthorized');
     } else {
       throw new Error('Could not retrieve positions');
     }
@@ -332,8 +328,9 @@ const refreshPortfolio = async accountNumber => {
     const json = await res.json();
     if (res.ok) {
       RobinHoodAPI._portfolio = json;
+    } else if (res.status === 401) {
+      console.log('refreshPortfolio unauthorized');
     } else {
-      console.log(res);
       throw new Error('Could not retrieve portfolio');
     }
   } catch (e) {
@@ -372,6 +369,10 @@ const refreshWatchlist = async () => {
         }
         return true;
       });
+    } else if (res.status === 401) {
+      console.log('refreshWatchlist unauthorized');
+    } else {
+      console.log(res.status);
     }
     console.timeEnd('refreshWatchlist');
   } catch (e) {
@@ -430,27 +431,19 @@ const createLoginWindow = () => {
 
   if (os.platform() === 'darwin') {
     // Mac
-    return new BrowserWindow(
-      Object.assign(
-        {
-          width: 300,
-          height: 450
-        },
-        defaultOpts
-      )
-    );
+    return new BrowserWindow({
+      ...defaultOpts,
+      width: 275,
+      height: 400
+    });
   } else {
     // Windows
-    return new BrowserWindow(
-      Object.assign(
-        {
-          width: 325,
-          height: 500,
-          frame: false
-        },
-        defaultOpts
-      )
-    );
+    return new BrowserWindow({
+      ...defaultOpts,
+      width: 300,
+      height: 450,
+      frame: false
+    });
   }
 };
 

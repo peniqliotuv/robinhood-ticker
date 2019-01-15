@@ -73,7 +73,6 @@ class NotificationMapper {
             ? last_extended_hours_trade_price
             : last_trade_price;
         let entry = this.watchlistMap.get(symbol);
-        console.log('watchlist', symbol, entry);
         if (entry !== undefined) {
           const { equity: oldEquity, hasNotificationTriggered } = entry;
           if (!hasNotificationTriggered) {
@@ -97,23 +96,20 @@ class NotificationMapper {
     for (const notif of notifications) {
       this.showNotification(notif);
     }
-
-    console.log(`Size of positionsMap: ${this.positionsMap.size}`);
-    console.log(`Size of watchlistMap: ${this.watchlistMap.size}`);
   }
 
   createNotification(symbol, equity, oldEquity) {
     const diff = Number(equity) - Number(oldEquity);
     if (Math.abs(diff / Number(oldEquity)) >= this.thresholdPercent / 100) {
       if (Math.sign(diff) === 1) {
-        console.log(`Greater than ${this.thresholdPercent / 100}`);
+        // console.log(`Greater than ${this.thresholdPercent / 100}`);
         return `${symbol} is up ${(diff * 100).toFixed(2)}%`;
       } else {
-        console.log(`Less than ${this.thresholdPercent / 100}`);
+        // console.log(`Less than ${this.thresholdPercent / 100}`);
         return `${symbol} is down ${(diff * 100).toFixed(2)}%`;
       }
     } else {
-      console.log(`${symbol} showed no change`);
+      // console.log(`${symbol} showed no change`);
       return `${symbol} showed no change!`;
     }
   }

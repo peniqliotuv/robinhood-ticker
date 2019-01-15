@@ -208,16 +208,10 @@ class RobinHoodAPI {
         };
       } else {
         // Get the error message from RobinHood and re-throw it
-        let message = '';
-        if (json.non_field_errors) {
-          message = json.non_field_errors[0];
-        } else if (json.mfa_code) {
-          message = json.mfa_code[0];
-        }
+        const message = json.detail;
         throw new Error(message);
       }
     } catch (error) {
-      console.log(error);
       return {
         success: false,
         error: error.message
