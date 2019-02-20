@@ -5,7 +5,8 @@ const {
   Tray,
   Menu,
   session,
-  ipcMain
+  ipcMain,
+  systemPreferences
 } = require('electron');
 const os = require('os');
 const AutoLaunch = require('auto-launch');
@@ -57,13 +58,14 @@ const logoutAndReturnToLoginMenu = async () => {
 const store = new Store();
 
 const ICON_LOGO_LARGE = path.join(__dirname, '../assets/logo-512.png');
-const ICON_LOGO = path.join(
-  __dirname,
-  // Windows needs a white logo
-  os.platform() === 'darwin'
-    ? '../assets/logo-16.png'
-    : '../assets/logo-16-white.png'
-);
+
+let ICON_LOGO;
+if (os.platform() === 'darwin' && !systemPreferences.isDarkMode()) {
+  ICON_LOGO = path.join(__dirname, '../assets/logo-16.png');
+} else {
+  ICON_LOGO = path.join(__dirname, '../assets/logo-16-white.png');
+}
+
 const ELECTRON_PATH = path.join(__dirname, '../node_modules/electron');
 
 const TIMEOUT_MS = 5000;
